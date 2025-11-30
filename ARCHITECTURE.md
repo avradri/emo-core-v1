@@ -1,11 +1,3 @@
-
----
-
-#### `ARCHITECTURE.md`  *(Commit 1)*
-
-A short, repo‑friendly version of the longer EMO v1.0 document.   
-
-```markdown
 # EMO‑Core v1.0 Architecture
 
 This file gives a **developer‑facing overview** of the EMO‑Core architecture.  
