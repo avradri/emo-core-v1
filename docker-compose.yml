@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: emo-postgres
+    environment:
+      POSTGRES_USER: emo
+      POSTGRES_PASSWORD: emo
+      POSTGRES_DB: emo
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: emo-api
+    depends_on:
+      - db
+    environment:
+      EMO_ENV: production
+      EMO_DATABASE_URL: postgresql+psycopg2://emo:emo@db:5432/emo
+    ports:
+      - "8000:8000"
+
+volumes:
+  db_data:
