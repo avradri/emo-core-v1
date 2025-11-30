@@ -1,31 +1,48 @@
-from __future__ import annotations
+# api/main.py
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from emo.config import get_settings
-from .routers import metrics, uia, interfaces
-
-
-def create_app() -> FastAPI:
-    settings = get_settings()
-    app = FastAPI(
-        title="Emergent Mind Observatory – EMO-Core v1.0",
-        version="0.1.0",
-        description=(
-            "Core metric engine and UIA layer for EMO, exposing species-mind "
-            "metrics and UIA summaries via HTTP."
-        ),
-    )
-
-    app.include_router(metrics.router, prefix="/metrics", tags=["metrics"])
-    app.include_router(uia.router, prefix="/uia", tags=["uia"])
-    app.include_router(interfaces.router, prefix="/interfaces", tags=["interfaces"])
-
-    @app.get("/health", tags=["system"])
-    async def health() -> dict:
-        return {"status": "ok", "env": settings.env}
-
-    return app
+from api.routers import metrics, uia
 
 
-app = create_app()
+DESCRIPTION = """
+Emergent Mind Observatory (EMO) v1.0 API
+
+This API exposes:
+
+- Species-mind metrics (OI, synergy, GWI, SMF, τ_I) built from open data. :contentReference[oaicite:5]{index=5}
+- Prototype DestinE × EMO overlays so digital twin scenarios can be viewed
+  together with cognitive metrics. 
+- Early UIA-style summaries for the human–Earth interface. 
+"""
+
+app = FastAPI(
+    title="Emergent Mind Observatory API",
+    version="1.0.0",
+    description=DESCRIPTION,
+    contact={"name": "EMO team", "email": "contact@example.org"},
+)
+
+
+# Allow the dashboard / notebooks / DestinE frontends to call us easily
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # tighten later if needed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health", tags=["ops"])
+def health() -> dict:
+    """
+    Lightweight health check for ops and uptime monitoring.
+    """
+    return {"status": "ok"}
+
+
+# Mount routers under /v1
+app.include_router(metrics.router, prefix="/v1")
+app.include_router(uia.router, prefix="/v1")
