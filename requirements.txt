@@ -1,0 +1,29 @@
+# Core numerics & data
+numpy>=1.26
+pandas>=2.2
+xarray>=2024.1
+scipy>=1.13
+scikit-learn>=1.5
+statsmodels>=0.14
+
+# HTTP + config
+requests>=2.32
+httpx>=0.27
+python-dotenv>=1.0
+pydantic>=2.7
+pydantic-settings>=2.4
+
+# Persistence (future Interface Registry / pipelines)
+SQLAlchemy>=2.0
+alembic>=1.13
+psycopg2-binary>=2.9
+
+# API
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# Orchestration (future DIH layer)
+prefect>=2.16
+
+# Logging
+loguru>=0.7
