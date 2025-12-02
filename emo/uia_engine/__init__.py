@@ -1,13 +1,31 @@
 """
-UIA Engine
+UIA engine subpackage for EMO-Core.
 
-Implements a thin, composable layer for computing UIA-relevant
-quantities from EMO metrics and external models:
+This package currently exposes a single high-level aggregation entry
+point, compute_a_uia, and the associated dataclasses used to represent
+UIA coefficients and snapshots.
 
-- informational curvature 𝓡[g_I]
-- focusing bracket ℬ
-- coherence C(t)
-- entropy S(t) and information I(t)
-- semantic efficiency M_E
-- local a_UIA and coarse-grained Ȧ_UIA
+The intent is that higher layers (API, dashboards, labs) can simply do:
+
+    from emo.uia_engine import compute_a_uia, UIASnapshot
+
+without worrying about the underlying module structure.
 """
+
+from __future__ import annotations
+
+from .aggregate import (
+    UIACoefficients,
+    UIASnapshot,
+    UIATerms,
+    compute_a_uia,
+    default_uia_coefficients,
+)
+
+__all__ = [
+    "UIACoefficients",
+    "UIATerms",
+    "UIASnapshot",
+    "compute_a_uia",
+    "default_uia_coefficients",
+]
