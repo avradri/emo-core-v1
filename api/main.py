@@ -1,48 +1,45 @@
 # api/main.py
+from __future__ import annotations
 
+import emo
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import metrics, uia
 
-
 DESCRIPTION = """
-Emergent Mind Observatory (EMO) v1.0 API
+EMO-Core API
 
-This API exposes:
-
-- Species-mind metrics (OI, synergy, GWI, SMF, τ_I) built from open data. :contentReference[oaicite:5]{index=5}
-- Prototype DestinE × EMO overlays so digital twin scenarios can be viewed
-  together with cognitive metrics. 
-- Early UIA-style summaries for the human–Earth interface. 
+This service exposes a thin HTTP layer over the EMO metric engine and
+UIA aggregation. It is intended as a reference implementation for labs,
+digital-twin teams, and funders who want to integrate EMO metrics into
+their own infrastructure.
 """
 
 app = FastAPI(
-    title="Emergent Mind Observatory API",
-    version="1.0.0",
+    title="EMO-Core API",
+    version=getattr(emo, "__version__", "0.1.0"),
     description=DESCRIPTION,
-    contact={"name": "EMO team", "email": "contact@example.org"},
 )
 
+# Routers ----------------------------------------------------------------
 
-# Allow the dashboard / notebooks / DestinE frontends to call us easily
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # tighten later if needed
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.include_router(metrics.router)
+app.include_router(uia.router)
 
 
-@app.get("/health", tags=["ops"])
-def health() -> dict:
+# Health & meta ----------------------------------------------------------
+
+@app.get("/health", tags=["meta"])
+async def health() -> dict:
     """
-    Lightweight health check for ops and uptime monitoring.
+    Basic health check for load balancers and smoke tests.
     """
     return {"status": "ok"}
 
 
-# Mount routers under /v1
-app.include_router(metrics.router, prefix="/v1")
-app.include_router(uia.router, prefix="/v1")
+@app.get("/version", tags=["meta"])
+async def version() -> dict:
+    """
+    Return the EMO-Core library version as seen by this service.
+    """
+    return {"version": getattr(emo, "__version__", "0.1.0")}
