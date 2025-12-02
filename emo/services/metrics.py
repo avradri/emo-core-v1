@@ -6,13 +6,10 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from emo import (
-    compute_gwi_for_topic,
-    compute_information_time_from_skill,
-    compute_organismality_index,
-    compute_reciprocity_flux,
-    compute_smf,
-)
+from emo.organismality import compute_organismality_index
+from emo.info_time import compute_information_time_from_skill
+from emo.reciprocity import compute_reciprocity_flux
+from emo.smf import compute_smf
 from emo.uia_engine import UIACoefficients, UIASnapshot, compute_a_uia
 
 
@@ -117,11 +114,13 @@ class MetricEngine:
         """
         Compute synergy / O-information metrics for a multivariate dataset.
 
-        This is a best-effort wrapper around `emo.synergy`. It performs a
-        local import so that EMO-Core can be imported even when synergy
-        tools are not available. If the synergy module or expected
-        functions are missing, this will raise a RuntimeError *when
-        called*, but will not break `import emo` or `import api`.
+        Best-effort wrapper around `emo.synergy`. We perform a local import
+        so that EMO-Core remains importable even if the synergy tools are
+        absent or under active development.
+
+        If the module or expected functions are missing, this will raise a
+        RuntimeError *when called*, but will not break `import emo` or
+        `import emo.services.metrics`.
         """
         try:
             from emo import synergy as synergy_mod  # type: ignore[attr-defined]
@@ -147,9 +146,23 @@ class MetricEngine:
         """
         Compute Global Workspace Ignition (GWI) metrics for a selected topic.
 
-        Thin wrapper around `compute_gwi_for_topic`.
+        This uses a lazy import of `emo.gwi` so that the absence of a
+        specific helper function does not break module import.
         """
-        result = compute_gwi_for_topic(*args, **kwargs)
+        try:
+            from emo import gwi as gwi_mod  # type: ignore[attr-defined]
+        except ImportError as exc:  # pragma: no cover - defensive
+            raise RuntimeError(
+                "GWI tools are not available (emo.gwi could not be imported)."
+            ) from exc
+
+        if not hasattr(gwi_mod, "compute_gwi_for_topic"):
+            raise RuntimeError(
+                "GWI module does not expose the expected `compute_gwi_for_topic` "
+                "function."
+            )
+
+        result = gwi_mod.compute_gwi_for_topic(*args, **kwargs)
         return _result_to_dict(result)
 
     def smf(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
