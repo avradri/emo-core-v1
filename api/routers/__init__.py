@@ -1,3 +1,6 @@
-from . import metrics, uia, interfaces  # noqa: F401
+# api/routers/__init__.py
+from __future__ import annotations
 
-__all__ = ["metrics", "uia", "interfaces"]
+from . import metrics, uia
+
+__all__ = ["metrics", "uia"]
