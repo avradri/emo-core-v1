@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "emo-core"
+version = "0.1.0"
+description = "Core metric engine for the Emergent Mind Observatory (EMO)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+authors = [
+  { name = "Adrian Avramescu" }
+]
+
+dependencies = [
+  # Core numerics & data
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "xarray>=2024.1",
+  "scipy>=1.13",
+  "scikit-learn>=1.5",
+  "statsmodels>=0.14",
+
+  # HTTP + config
+  "requests>=2.32",
+  "httpx>=0.27",
+  "python-dotenv>=1.0",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.4",
+
+  # Persistence (future Interface Registry / pipelines)
+  "SQLAlchemy>=2.0",
+  "alembic>=1.13",
+  "psycopg2-binary>=2.9",
+
+  # API
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+
+  # Orchestration
+  "prefect>=2.16",
+
+  # Logging
+  "loguru>=0.7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+  "ruff>=0.6",
+  "types-requests",
+  "types-python-dateutil",
+]
+
+[project.urls]
+Homepage = "https://github.com/avradri/emo-core-v1"
+Source = "https://github.com/avradri/emo-core-v1"
+Issues = "https://github.com/avradri/emo-core-v1/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["emo", "api", "orchestration"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+  "E203",
+  "E501",
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_configs = true
+
+# Initial, non-strict setup so CI is green; we can tighten later.
+disallow_untyped_defs = false
+check_untyped_defs = false
+no_implicit_optional = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
