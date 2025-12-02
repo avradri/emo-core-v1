@@ -7,13 +7,11 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from emo import (
-    build_synergy_dataset,
     compute_gwi_for_topic,
     compute_information_time_from_skill,
     compute_organismality_index,
     compute_reciprocity_flux,
     compute_smf,
-    compute_synergy_o_information,
 )
 from emo.uia_engine import UIACoefficients, UIASnapshot, compute_a_uia
 
@@ -22,10 +20,10 @@ def _result_to_dict(result: Any) -> Any:
     """
     Best-effort conversion of metric results into JSON-friendly structures.
 
-    - dataclasses  -> dict
-    - pandas Series -> dict
+    - dataclasses      -> dict
+    - pandas Series    -> dict
     - pandas DataFrame -> list[dict]
-    - other objects -> returned as-is
+    - other objects    -> returned as-is
     """
     if is_dataclass(result):
         return asdict(result)
@@ -119,13 +117,30 @@ class MetricEngine:
         """
         Compute synergy / O-information metrics for a multivariate dataset.
 
-        This is a convenience wrapper around `build_synergy_dataset` and
-        `compute_synergy_o_information`. The exact arguments depend on the
-        underlying implementation; we expose *args/**kwargs so that labs can
-        call this directly from Python and tailor it to their needs.
+        This is a best-effort wrapper around `emo.synergy`. It performs a
+        local import so that EMO-Core can be imported even when synergy
+        tools are not available. If the synergy module or expected
+        functions are missing, this will raise a RuntimeError *when
+        called*, but will not break `import emo` or `import api`.
         """
-        dataset = build_synergy_dataset(df, *args, **kwargs)
-        result = compute_synergy_o_information(dataset)
+        try:
+            from emo import synergy as synergy_mod  # type: ignore[attr-defined]
+        except ImportError as exc:  # pragma: no cover - defensive
+            raise RuntimeError(
+                "Synergy tools are not available (emo.synergy could not be imported)."
+            ) from exc
+
+        if not hasattr(synergy_mod, "build_synergy_dataset") or not hasattr(
+            synergy_mod, "compute_synergy_o_information"
+        ):
+            raise RuntimeError(
+                "Synergy module does not expose the expected "
+                "`build_synergy_dataset` and `compute_synergy_o_information` "
+                "functions."
+            )
+
+        dataset = synergy_mod.build_synergy_dataset(df, *args, **kwargs)
+        result = synergy_mod.compute_synergy_o_information(dataset)
         return _result_to_dict(result)
 
     def gwi_for_topic(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
