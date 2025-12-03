@@ -20,7 +20,7 @@ def _result_to_dict(result: Any) -> Any:
     etc.).
     """
     # Dataclasses (used throughout emo.*)
-    if is_dataclass(result):
+    if is_dataclass(result) and not isinstance(result, type):
         return asdict(result)
 
     # Common pandas containers
