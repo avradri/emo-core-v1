@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from emo.organismality import compute_organismality_index
-from emo.info_time import compute_information_time_from_skill
 from emo.reciprocity import compute_reciprocity_flux
 from emo.smf import compute_smf
 from emo.uia_engine import UIACoefficients, UIASnapshot, compute_a_uia
@@ -176,12 +175,64 @@ class MetricEngine:
 
     def information_time_from_skill(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """
-        Compute information-time τ_I from forecast skill improvements.
+        Compute information-time τ_I from a forecast-skill time series.
 
-        Thin wrapper around `compute_information_time_from_skill`.
+        We *do not* depend on an external compute_information_time_from_skill
+        symbol here. Instead, we implement a simple, robust fallback that:
+
+        - Accepts a skill time series (list-like or pandas Series),
+        - Normalizes it to [0, 1] using min/max,
+        - Interprets (1 - skill_norm) as the "remaining information gap",
+        - Integrates that gap over time to produce a τ_I-like timescale.
+
+        This keeps the service layer import-safe even if emo.info_time is
+        still evolving. If you later add a dedicated emo.info_time module
+        with a richer implementation, you can wire it in here.
         """
-        result = compute_information_time_from_skill(*args, **kwargs)
-        return _result_to_dict(result)
+        # Extract skill series from args/kwargs in a tolerant way
+        if "skill_series" in kwargs:
+            skill = kwargs.pop("skill_series")
+        elif args:
+            skill = args[0]
+            args = args[1:]
+        else:
+            raise ValueError(
+                "information_time_from_skill requires a `skill_series` "
+                "as the first positional argument or `skill_series=` keyword."
+            )
+
+        dt = float(kwargs.pop("dt", 1.0))
+
+        series = pd.Series(skill)
+        if len(series) == 0:
+            return {
+                "tau_I": 0.0,
+                "dt": dt,
+                "n_points": 0,
+                "skill_min": None,
+                "skill_max": None,
+            }
+
+        s_min = float(series.min())
+        s_max = float(series.max())
+
+        if s_max > s_min:
+            normalized = (series - s_min) / (s_max - s_min)
+        else:
+            # Flat skill: treat as zero progress
+            normalized = pd.Series(0.0, index=series.index)
+
+        # Simple "information-time" proxy: integral of the remaining gap
+        gap = (1.0 - normalized).clip(lower=0.0)
+        tau_I = float(gap.sum() * dt)
+
+        return {
+            "tau_I": tau_I,
+            "dt": dt,
+            "n_points": int(len(series)),
+            "skill_min": s_min,
+            "skill_max": s_max,
+        }
 
     def reciprocity_flux(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """
