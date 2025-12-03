@@ -15,68 +15,85 @@ def _result_to_dict(result: Any) -> Any:
     """
     Best-effort conversion of metric results into JSON-friendly structures.
 
-    - dataclasses      -> dict
-    - pandas Series    -> dict
-    - pandas DataFrame -> list[dict]
-    - other objects    -> returned as-is
+    This function handles dataclasses, lists, dictionaries, and simple types,
+    and is intended to be used by the service layer before returning data
+    through the FastAPI routes.
+
+    It does *not* attempt to be fully general; it just supports the result
+    types used in the current EMO metrics modules (organismality, UIA, SMF,
+    etc.).
     """
     if is_dataclass(result):
         return asdict(result)
 
-    if isinstance(result, pd.DataFrame):
-        return result.to_dict(orient="records")
+    if isinstance(result, dict):
+        return {k: _result_to_dict(v) for k, v in result.items()}
 
-    if isinstance(result, pd.Series):
-        return result.to_dict()
+    if isinstance(result, (list, tuple)):
+        return [_result_to_dict(v) for v in result]
 
+    # Fallback: assume it is already JSON-serializable (int, float, str, etc.)
     return result
+
+
+# ---------------------------------------------------------------------------
+# UIA summary result type
+# ---------------------------------------------------------------------------
 
 
 @dataclass
 class UIASummary:
     """
-    JSON-friendly summary for a UIA aggregation window.
+    Lightweight summary container for UIA time-series.
 
-    This sits one layer above UIASnapshot, and is what we expect to return
-    from API endpoints and dashboards.
-
-    Parameters
-    ----------
-    interface_id:
-        Identifier for the interface Σ (e.g. "global_human_earth",
-        "eu_energy_system", "destine_v1").
-    window_start:
-        Start of the time window as ISO8601 string, or None if unknown.
-    window_end:
-        End of the time window as ISO8601 string, or None if unknown.
-    A_uia_bar:
-        Coarse-grained Ȧ_UIA over the window.
-    a_uia:
-        Values of the local UIA density a_UIA(t).
-    timestamps:
-        ISO8601 timestamps corresponding to a_uia entries.
-    metadata:
-        Optional free-form metadata (e.g. scenario name, notes).
+    This is a simplified, JSON-friendly view of the more detailed
+    `UIASnapshot` objects produced by `emo.uia_engine.compute_a_uia`.
     """
 
     interface_id: str
-    window_start: Optional[str]
-    window_end: Optional[str]
     A_uia_bar: float
     a_uia: List[float]
     timestamps: List[str]
     metadata: Dict[str, Any]
+
+    @classmethod
+    def from_snapshot(cls, snapshot: UIASnapshot) -> "UIASummary":
+        """
+        Build a UIASummary from a UIASnapshot.
+
+        Parameters
+        ----------
+        snapshot:
+            A `UIASnapshot` instance returned by `compute_a_uia`.
+        """
+        # For now we expose only a subset of the snapshot fields, in a
+        # JSON- and Pydantic-friendly format.
+        return cls(
+            interface_id=snapshot.interface_id,
+            A_uia_bar=float(snapshot.A_uia_bar),
+            a_uia=[float(x) for x in snapshot.a_uia],
+            timestamps=[str(ts) for ts in snapshot.timestamps],
+            metadata=dict(snapshot.metadata or {}),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Metric engine
+# ---------------------------------------------------------------------------
 
 
 class MetricEngine:
     """
     High-level service layer for EMO metrics.
 
-    This class provides a clean, lab-facing API around the core metric
-    functions implemented in the emo package, plus UIA aggregation.
+    This class groups together the main metrics that are currently used
+    in EMO Core and exposes them via stable, JSON-friendly methods that
+    the FastAPI routes can call.
 
-    It is intentionally thin: it delegates all scientific logic to the
-    underlying modules, and focuses on producing JSON-friendly outputs.
+    The aim is to isolate the rest of the codebase from changes in the
+    underlying algorithm implementations: we can refactor `emo.organismality`,
+    `emo.smf`, `emo.uia_engine`, etc. without breaking the public API, as
+    long as `MetricEngine`'s interface remains stable.
     """
 
     def __init__(self, uia_coeffs: Optional[UIACoefficients] = None) -> None:
@@ -98,8 +115,8 @@ class MetricEngine:
         result into a dictionary that FastAPI can serialize.
         """
         result = compute_organismality_index(
-            treaties_df=treaties_df,
-            conflicts_df=conflicts_df,
+            treaties=treaties_df,
+            conflicts=conflicts_df,
         )
         return _result_to_dict(result)
 
@@ -127,238 +144,145 @@ class MetricEngine:
                 "Synergy tools are not available (emo.synergy could not be imported)."
             ) from exc
 
-        if not hasattr(synergy_mod, "build_synergy_dataset") or not hasattr(
-            synergy_mod, "compute_synergy_o_information"
-        ):
+        if not hasattr(synergy_mod, "compute_synergy_for_dataframe"):
             raise RuntimeError(
                 "Synergy module does not expose the expected "
-                "`build_synergy_dataset` and `compute_synergy_o_information` "
-                "functions."
+                "`compute_synergy_for_dataframe` function."
             )
 
-        dataset = synergy_mod.build_synergy_dataset(df, *args, **kwargs)
-        result = synergy_mod.compute_synergy_o_information(dataset)
+        result = synergy_mod.compute_synergy_for_dataframe(df, *args, **kwargs)
         return _result_to_dict(result)
 
-    def gwi_for_topic(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+    def reciprocity_flux(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
         """
-        Compute Global Workspace Ignition (GWI) metrics for a selected topic.
+        Compute reciprocity flux metrics.
 
-        This uses a lazy import of `emo.gwi` so that the absence of a
-        specific helper function does not break module import.
-        """
-        try:
-            from emo import gwi as gwi_mod  # type: ignore[attr-defined]
-        except ImportError as exc:  # pragma: no cover - defensive
-            raise RuntimeError(
-                "GWI tools are not available (emo.gwi could not be imported)."
-            ) from exc
+        This is a thin wrapper around `emo.reciprocity`. To keep the core
+        service layer import-safe, we *lazily* import `emo.reciprocity` here.
 
-        if not hasattr(gwi_mod, "compute_gwi_for_topic"):
-            raise RuntimeError(
-                "GWI module does not expose the expected `compute_gwi_for_topic` "
-                "function."
-            )
+        If the module or expected function is missing, we raise a RuntimeError
+        when this method is called, but we do not break `import emo` or
+        `import emo.services.metrics`.
 
-        result = gwi_mod.compute_gwi_for_topic(*args, **kwargs)
-        return _result_to_dict(result)
-
-    def smf(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
-        """
-        Compute Self-Model Fidelity (SMF) metrics.
-
-        Thin wrapper around `compute_smf`.
-        """
-        result = compute_smf(*args, **kwargs)
-        return _result_to_dict(result)
-
-    def information_time_from_skill(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
-        """
-        Compute information-time τ_I from a forecast-skill time series.
-
-        We *do not* depend on an external compute_information_time_from_skill
-        symbol here. Instead, we implement a simple, robust fallback that:
-
-        - Accepts a skill time series (list-like or pandas Series),
-        - Normalizes it to [0, 1] using min/max,
-        - Interprets (1 - skill_norm) as the "remaining information gap",
-        - Integrates that gap over time to produce a τ_I-like timescale.
-
-        This keeps the service layer import-safe even if emo.info_time is
-        still evolving. If you later add a dedicated emo.info_time module
-        with a richer implementation, you can wire it in here.
-        """
-        # Extract skill series from args/kwargs in a tolerant way
-        if "skill_series" in kwargs:
-            skill = kwargs.pop("skill_series")
-        elif args:
-            skill = args[0]
-            args = args[1:]
-        else:
-            raise ValueError(
-                "information_time_from_skill requires a `skill_series` "
-                "as the first positional argument or `skill_series=` keyword."
-            )
-
-        dt = float(kwargs.pop("dt", 1.0))
-
-        series = pd.Series(skill)
-        if len(series) == 0:
-            return {
-                "tau_I": 0.0,
-                "dt": dt,
-                "n_points": 0,
-                "skill_min": None,
-                "skill_max": None,
-            }
-
-        s_min = float(series.min())
-        s_max = float(series.max())
-
-        if s_max > s_min:
-            normalized = (series - s_min) / (s_max - s_min)
-        else:
-            # Flat skill: treat as zero progress
-            normalized = pd.Series(0.0, index=series.index)
-
-        # Simple "information-time" proxy: integral of the remaining gap
-        gap = (1.0 - normalized).clip(lower=0.0)
-        tau_I = float(gap.sum() * dt)
-
-        return {
-            "tau_I": tau_I,
-            "dt": dt,
-            "n_points": int(len(series)),
-            "skill_min": s_min,
-            "skill_max": s_max,
-        }
-
-    def reciprocity_flux(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
-        """
-        Compute reciprocity fluxes R, J_B, B for a given dataset.
-
-        We avoid any fragile import from `emo.reciprocity` here to keep the
+        Notes
+        -----
+        The concrete reciprocity implementation in `emo.reciprocity` is still
+        evolving. We therefore avoid pinning to any particular function name
+        at import time and instead check for it at call time. This keeps the
         service layer import-safe. If a concrete `compute_reciprocity_flux`
-        implementation is available in `emo.reciprocity`, we use it; otherwise
-        we fall back to a simple summary of the provided data.
-
-        This means:
-
-        - In fully wired deployments, you can implement your detailed
-          reciprocity flux logic in emo/reciprocity.py and expose a
-          `compute_reciprocity_flux` function.
-        - In minimal / test deployments, the fallback still returns a
-          JSON-friendly summary dict.
+        function is not available, a clear RuntimeError is raised.
         """
         try:
             from emo import reciprocity as rec_mod  # type: ignore[attr-defined]
-        except ImportError:
-            rec_mod = None
+        except ImportError as exc:  # pragma: no cover - defensive
+            raise RuntimeError(
+                "Reciprocity tools are not available (emo.reciprocity could not be "
+                "imported)."
+            ) from exc
 
+        # Preferred modern API: compute_reciprocity_fluxes (plural)
+        if rec_mod is not None and hasattr(rec_mod, "compute_reciprocity_fluxes"):
+            result = rec_mod.compute_reciprocity_fluxes(*args, **kwargs)
+            return _result_to_dict(result)
+
+        # Backwards-compatibility shim for older code paths that used
+        # a singular `compute_reciprocity_flux` function.
         if rec_mod is not None and hasattr(rec_mod, "compute_reciprocity_flux"):
             result = rec_mod.compute_reciprocity_flux(*args, **kwargs)
             return _result_to_dict(result)
 
-        # Fallback: treat the first arg or "data" kwarg as a DataFrame-like.
-        data = None
-        if "data" in kwargs:
-            data = kwargs["data"]
-        elif args:
-            data = args[0]
-
-        if data is None:
-            # Nothing sensible to summarize; return an empty placeholder.
-            return {
-                "R": None,
-                "J_B": None,
-                "B": None,
-                "detail": "no data provided; reciprocity_flux fallback",
-            }
-
-        df = pd.DataFrame(data)
-
-        return {
-            "R": 0.0,
-            "J_B": 0.0,
-            "B": 0.0,
-            "n_rows": int(df.shape[0]),
-            "n_cols": int(df.shape[1]),
-            "columns": list(df.columns),
-            "detail": "fallback reciprocity_flux summary (no emo.reciprocity implementation found)",
-        }
+        raise RuntimeError(
+            "Reciprocity module does not expose an expected "
+            "`compute_reciprocity_fluxes` or `compute_reciprocity_flux` function."
+        )
 
     # ------------------------------------------------------------------
-    # UIA aggregation
+    # Sentience-mindfield (SMF) metrics
     # ------------------------------------------------------------------
 
-    def uia_from_series(
+    def smf_from_dataframe(
+        self,
+        df: pd.DataFrame,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        """
+        Compute Sentience MindField (SMF) metrics from a dataframe.
+
+        This is a direct wrapper around `emo.smf.compute_smf`, with results
+        converted into JSON-friendly structures.
+        """
+        result = compute_smf(df, *args, **kwargs)
+        return _result_to_dict(result)
+
+    # ------------------------------------------------------------------
+    # UIA metrics
+    # ------------------------------------------------------------------
+
+    def uia_from_dataframe(
+        self,
+        df: pd.DataFrame,
+        interface_id: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        """
+        Compute UIA metrics from a dataframe.
+
+        This is a direct wrapper around `emo.uia_engine.compute_a_uia`, which
+        returns a `UIASnapshot`. We convert that snapshot to a dictionary via
+        `UIASummary`, yielding a JSON-friendly summary suitable for API
+        responses.
+        """
+        snapshot = compute_a_uia(
+            df=df,
+            interface_id=interface_id,
+            coeffs=self._uia_coeffs,
+            *args,
+            **kwargs,
+        )
+        summary = UIASummary.from_snapshot(snapshot)
+        return _result_to_dict(summary)
+
+    def uia_summary(
         self,
         interface_id: str,
-        R_scalar: float,
+        index: pd.DatetimeIndex,
+        A_series: pd.Series,
         B_scalar: float,
         C_series: pd.Series,
         S_series: pd.Series,
         I_series: pd.Series,
-        M_E: float | pd.Series = 0.0,
-        coeffs: Optional[UIACoefficients] = None,
+        M_E: float,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> UIASummary:
         """
-        Compute a_UIA(t) and a UIASummary for a given interface and window.
+        Construct a UIA summary directly from series inputs.
 
-        Parameters
-        ----------
-        interface_id:
-            Identifier for the interface Σ.
-        R_scalar:
-            Scalar informational curvature 𝓡[g_I] over the window.
-        B_scalar:
-            Scalar focusing bracket ℬ over the window.
-        C_series, S_series, I_series:
-            Time series for coherence C(t), entropy-like S(t), and
-            information-like I(t), all sharing the same index.
-        M_E:
-            Semantic efficiency M_E; scalar or Series aligned with C_series.
-        coeffs:
-            Optional custom UIACoefficients. If omitted, defaults from
-            `self._uia_coeffs` are used.
-        metadata:
-            Optional metadata dictionary.
-
-        Returns
-        -------
-        UIASummary
-            JSON-friendly summary of the UIA aggregation.
+        This helper is used by tests and provides a slightly higher-level API
+        for wrapping `compute_a_uia`. It expects time-indexed series for the
+        main UIA inputs and returns a `UIASummary` instance.
         """
-        coeffs = coeffs or self._uia_coeffs
-
-        snapshot: UIASnapshot = compute_a_uia(
-            R_scalar=R_scalar,
-            B_scalar=B_scalar,
-            C_series=C_series,
-            S_series=S_series,
-            I_series=I_series,
-            M_E_scalar=M_E,
-            coeffs=coeffs,
+        df = pd.DataFrame(
+            {
+                "A": A_series,
+                "C": C_series,
+                "S": S_series,
+                "I": I_series,
+            },
+            index=index,
         )
 
-        index = snapshot.a_uia_series.index
-        if len(index) > 0:
-            window_start = str(index[0])
-            window_end = str(index[-1])
-        else:
-            window_start = None
-            window_end = None
-
-        a_uia_values = [float(v) for v in snapshot.a_uia_series.to_numpy()]
-        timestamps = [str(ts) for ts in index]
-
-        return UIASummary(
+        snapshot = compute_a_uia(
+            df=df,
             interface_id=interface_id,
-            window_start=window_start,
-            window_end=window_end,
-            A_uia_bar=float(snapshot.A_uia_bar),
-            a_uia=a_uia_values,
-            timestamps=timestamps,
+            coeffs=self._uia_coeffs,
+            B=B_scalar,
+            M_E=M_E,
             metadata=metadata or {},
         )
+        return UIASummary.from_snapshot(snapshot)
