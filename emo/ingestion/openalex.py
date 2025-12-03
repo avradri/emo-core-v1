@@ -54,7 +54,7 @@ def fetch_works_by_year(cfg: OpenAlexConceptConfig) -> pd.DataFrame:
     """
     Use OpenAlex /works with group_by=publication_year to get counts per year. :contentReference[oaicite:25]{index=25}
     """
-    params = {
+    params: dict[str, str | int] = {
         "group_by": "publication_year",
         "per-page": 200,  # group_by results, not individual works
         "mailto": OPENALEX_MAILTO,
@@ -89,40 +89,47 @@ def fetch_works_by_year(cfg: OpenAlexConceptConfig) -> pd.DataFrame:
             "label": cfg.label,
             "concept_id": cfg.concept_id,
             "display_name_search": cfg.display_name_search,
+            "filter_extra": cfg.filter_extra,
         }
     ).sort_values("year")
-    return df
+
+    return df.reset_index(drop=True)
 
 
-def run_openalex_pipeline(
+def openalex_weekly_ingestion(
     concepts: Iterable[OpenAlexConceptConfig],
     layout: Optional[DataLakeLayout] = None,
 ) -> PipelineRun:
     """
-    Fetch yearly work counts for a set of OpenAlex concepts / topics and
-    write feature tables for synergy and τ_I.
+    Weekly pipeline:
 
-    Intended cadence: **weekly** (synergy Ω) or **monthly** (if cheaper).
+    - For each configured concept/topic, query OpenAlex /works grouped by year
+      and store a small feature table in the data lake.
+
+    This is intended to be light-weight, cheap to run, and primarily used for
+    high-level trend visualisation.
     """
     layout = layout or DataLakeLayout.from_env()
     started = now_utc()
     records = 0
     artifacts: List[str] = []
+    status = "success"
+    detail = ""
 
     try:
         for cfg in concepts:
             df = fetch_works_by_year(cfg)
             records += len(df)
             path = layout.subpath(
-                "feature", "openalex", f"works_by_year_{cfg.label}.parquet"
+                "feature",
+                "openalex",
+                f"works_by_year_{cfg.label}.parquet",
             )
             save_dataframe(df, path)
             artifacts.append(str(path))
-        status = "success"
-        detail = None
     except Exception as exc:  # pragma: no cover - defensive
-        LOG.exception("OpenAlex pipeline failed: %s", exc)
-        status = "failed"
+        LOG.exception("OpenAlex weekly ingestion failed")
+        status = "error"
         detail = str(exc)
 
     finished = now_utc()
