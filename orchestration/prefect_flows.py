@@ -16,9 +16,8 @@ except Exception:  # pragma: no cover - graceful degradation if Prefect is missi
         function is returned unchanged, and any decorator
         arguments are ignored.
         """
-
         if fn is not None and callable(fn):
-            # Used as @decorator without arguments
+            # Used as @decorator without arguments: @task / @flow
             return fn
 
         def wrapper(f):
@@ -35,8 +34,8 @@ from emo.ingestion import (
     ForecastSkillConfig,
     PipelineRun,
     emo_daily_attention,
-    emo_monthly_oi_smf,
     emo_weekly_synergy,
+    emo_monthly_oi_smf,
     emo_yearly_tau,
 )
 
@@ -45,6 +44,7 @@ LOG = logging.getLogger(__name__)
 
 @task
 def _log_runs(name: str, runs: List[PipelineRun]) -> None:
+    """Log a short summary of completed pipeline runs."""
     total = sum((r.records or 0) for r in runs)
     LOG.info("Flow %s completed %d runs, total records=%s", name, len(runs), total)
 
@@ -52,9 +52,9 @@ def _log_runs(name: str, runs: List[PipelineRun]) -> None:
 @flow(name="EMO Daily Attention")
 def emo_daily_attention_flow() -> None:
     """
-    Daily Prefect flow:
+    Daily Prefect flow.
 
-    - Ingest daily attention data (e.g., IATI / WFP / other feeds).
+    Ingests / updates the daily attention data lake tables.
     """
     layout = DataLakeLayout.from_env()
     runs = emo_daily_attention(layout=layout)
@@ -64,9 +64,9 @@ def emo_daily_attention_flow() -> None:
 @flow(name="EMO Weekly Synergy")
 def emo_weekly_synergy_flow() -> None:
     """
-    Weekly Prefect flow:
+    Weekly Prefect flow.
 
-    - Run weekly synergy / O-information pipelines.
+    Runs the weekly synergy / O-information analysis.
     """
     layout = DataLakeLayout.from_env()
     runs = emo_weekly_synergy(layout=layout)
@@ -76,9 +76,10 @@ def emo_weekly_synergy_flow() -> None:
 @flow(name="EMO Monthly OI and SMF")
 def emo_monthly_oi_smf_flow() -> None:
     """
-    Monthly Prefect flow:
+    Monthly Prefect flow.
 
-    - Compute organismality index and SMF metrics.
+    Computes the organismality index (OI) and SMF metrics and stores
+    the results in the data lake.
     """
     layout = DataLakeLayout.from_env()
     runs = emo_monthly_oi_smf(layout=layout)
@@ -90,12 +91,12 @@ def emo_yearly_tau_flow(
     forecast_skill_url: str = "https://example.com/forecast_skill.csv",
 ) -> None:
     """
-    Yearly Prefect flow:
+    Yearly Prefect flow.
 
-    - Forecast-skill CSV mirroring for τ_I.
+    Mirrors forecast-skill CSV data (for τ_I) into the data lake.
 
-    Replace the default URL with the real source from ECMWF / C3S or
-    similar forecast-skill provider.
+    Replace the default URL with the real source from ECMWF / C3S or a
+    similar forecast-skill provider in production deployments.
     """
     layout = DataLakeLayout.from_env()
     cfg = ForecastSkillConfig(
