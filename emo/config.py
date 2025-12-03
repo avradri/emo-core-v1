@@ -2,6 +2,10 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings
 
 
+# Default User-Agent for outbound HTTP requests
+USER_AGENT: str = "EMO-Core/1.0 (research; contact@example.org)"
+
+
 class Settings(BaseSettings):
     """
     Global configuration for EMO-Core.
@@ -15,7 +19,7 @@ class Settings(BaseSettings):
     # Database (future Interface Registry & pipelines)
     database_url: str = "postgresql+psycopg2://emo:emo@localhost:5432/emo"
 
-    # External interfaces (base URLs)
+    # External data sources (indicative defaults; see docs for real endpoints)
     gdelt_doc_api_base: str = "https://api.gdeltproject.org/api/v2/doc/doc"
     openalex_base: str = "https://api.openalex.org"
     destine_base: str = "https://destine.ecmwf.int"  # indicative only
