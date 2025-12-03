@@ -16,23 +16,28 @@ except Exception:  # pragma: no cover - graceful degradation if Prefect is missi
         function is returned unchanged, and any decorator
         arguments are ignored.
         """
-        if fn is None:
-            def wrapper(f):
-                return f
-            return wrapper
-        return fn
 
-    flow = _identity_decorator
-    task = _identity_decorator
+        if fn is not None and callable(fn):
+            # Used as @decorator without arguments
+            return fn
+
+        def wrapper(f):
+            return f
+
+        return wrapper
+
+    # Expose stand-ins with the same API shape as Prefect.
+    flow = _identity_decorator  # type: ignore[assignment]
+    task = _identity_decorator  # type: ignore[assignment]
 
 from emo.ingestion import (
     DataLakeLayout,
+    ForecastSkillConfig,
     PipelineRun,
     emo_daily_attention,
-    emo_weekly_synergy,
     emo_monthly_oi_smf,
+    emo_weekly_synergy,
     emo_yearly_tau,
-    ForecastSkillConfig,
 )
 
 LOG = logging.getLogger(__name__)
@@ -61,14 +66,14 @@ def emo_weekly_synergy_flow() -> None:
     """
     Weekly Prefect flow:
 
-    - Run weekly synergy / O-information analyses.
+    - Run weekly synergy / O-information pipelines.
     """
     layout = DataLakeLayout.from_env()
     runs = emo_weekly_synergy(layout=layout)
     _log_runs.submit("emo_weekly_synergy", runs)
 
 
-@flow(name="EMO Monthly OI & SMF")
+@flow(name="EMO Monthly OI and SMF")
 def emo_monthly_oi_smf_flow() -> None:
     """
     Monthly Prefect flow:
@@ -82,7 +87,7 @@ def emo_monthly_oi_smf_flow() -> None:
 
 @flow(name="EMO Yearly TauI")
 def emo_yearly_tau_flow(
-    forecast_skill_url: str = "https://example.org/ecmwf_headline_scores.csv",
+    forecast_skill_url: str = "https://example.com/forecast_skill.csv",
 ) -> None:
     """
     Yearly Prefect flow:
