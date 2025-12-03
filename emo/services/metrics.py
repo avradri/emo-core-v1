@@ -15,24 +15,29 @@ def _result_to_dict(result: Any) -> Any:
     """
     Best-effort conversion of metric results into JSON-friendly structures.
 
-    This function handles dataclasses, lists, dictionaries, and simple types,
-    and is intended to be used by the service layer before returning data
-    through the FastAPI routes.
-
-    It does *not* attempt to be fully general; it just supports the result
-    types used in the current EMO metrics modules (organismality, UIA, SMF,
+    This helper keeps the service layer and API endpoints decoupled from the
+    concrete return types of the scientific core (dataclasses, pandas objects,
     etc.).
     """
+    # Dataclasses (used throughout emo.*)
     if is_dataclass(result):
         return asdict(result)
 
+    # Common pandas containers
+    if isinstance(result, pd.DataFrame):
+        return result.to_dict(orient="records")
+
+    if isinstance(result, pd.Series):
+        return result.to_dict()
+
+    # Generic containers
     if isinstance(result, dict):
         return {k: _result_to_dict(v) for k, v in result.items()}
 
     if isinstance(result, (list, tuple)):
         return [_result_to_dict(v) for v in result]
 
-    # Fallback: assume it is already JSON-serializable (int, float, str, etc.)
+    # Fallback: assume it is already JSON-serialisable
     return result
 
 
@@ -44,10 +49,11 @@ def _result_to_dict(result: Any) -> Any:
 @dataclass
 class UIASummary:
     """
-    Lightweight summary container for UIA time-series.
+    JSON-serialisable summary of a UIA aggregation.
 
-    This is a simplified, JSON-friendly view of the more detailed
-    `UIASnapshot` objects produced by `emo.uia_engine.compute_a_uia`.
+    This is a thin, API-facing wrapper around :class:`emo.uia_engine.UIASnapshot`.
+    We keep the structure deliberately small and stable so that FastAPI can
+    expose it directly.
     """
 
     interface_id: str
@@ -57,23 +63,34 @@ class UIASummary:
     metadata: Dict[str, Any]
 
     @classmethod
-    def from_snapshot(cls, snapshot: UIASnapshot) -> "UIASummary":
+    def from_snapshot(
+        cls,
+        snapshot: UIASnapshot,
+        interface_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> "UIASummary":
         """
-        Build a UIASummary from a UIASnapshot.
+        Build a :class:`UIASummary` from a :class:`UIASnapshot`.
 
         Parameters
         ----------
         snapshot:
-            A `UIASnapshot` instance returned by `compute_a_uia`.
+            Result returned by :func:`emo.uia_engine.compute_a_uia`.
+        interface_id:
+            Identifier for the interface Σ (e.g. "global_human_earth").
+        metadata:
+            Optional extra metadata to attach to the summary.
         """
-        # For now we expose only a subset of the snapshot fields, in a
-        # JSON- and Pydantic-friendly format.
+        index = snapshot.a_uia_series.index
+        a_values = [float(v) for v in snapshot.a_uia_series.to_numpy()]
+        timestamps = [str(ts) for ts in index]
+
         return cls(
-            interface_id=snapshot.interface_id,
+            interface_id=interface_id,
             A_uia_bar=float(snapshot.A_uia_bar),
-            a_uia=[float(x) for x in snapshot.a_uia],
-            timestamps=[str(ts) for ts in snapshot.timestamps],
-            metadata=dict(snapshot.metadata or {}),
+            a_uia=a_values,
+            timestamps=timestamps,
+            metadata=metadata or {},
         )
 
 
@@ -93,14 +110,15 @@ class MetricEngine:
     The aim is to isolate the rest of the codebase from changes in the
     underlying algorithm implementations: we can refactor `emo.organismality`,
     `emo.smf`, `emo.uia_engine`, etc. without breaking the public API, as
-    long as `MetricEngine`'s interface remains stable.
+    long as :class:`MetricEngine`'s interface remains stable.
     """
 
     def __init__(self, uia_coeffs: Optional[UIACoefficients] = None) -> None:
+        # Default to the canonical coefficient set if none is provided.
         self._uia_coeffs = uia_coeffs or UIACoefficients()
 
     # ------------------------------------------------------------------
-    # Species-mind metrics
+    # Species‑mind metrics
     # ------------------------------------------------------------------
 
     def organismality_from_frames(
@@ -111,8 +129,8 @@ class MetricEngine:
         """
         Compute the Organismality Index (OI) from treaty and conflict data.
 
-        This simply wraps `compute_organismality_index` and converts the
-        result into a dictionary that FastAPI can serialize.
+        This simply wraps :func:`emo.organismality.compute_organismality_index`
+        and converts the result into a dictionary that FastAPI can serialise.
         """
         result = compute_organismality_index(
             treaties=treaties_df,
@@ -129,13 +147,11 @@ class MetricEngine:
         """
         Compute synergy / O-information metrics for a multivariate dataset.
 
-        Best-effort wrapper around `emo.synergy`. We perform a local import
-        so that EMO-Core remains importable even if the synergy tools are
-        absent or under active development.
-
-        If the module or expected functions are missing, this will raise a
-        RuntimeError *when called*, but will not break `import emo` or
-        `import emo.services.metrics`.
+        We perform a local import so that EMO-Core remains importable even if
+        the synergy tools are absent or still evolving. If the module or the
+        expected function is missing, this method raises a RuntimeError *when
+        called*, but does not break ``import emo`` or
+        ``import emo.services.metrics``.
         """
         try:
             from emo import synergy as synergy_mod  # type: ignore[attr-defined]
@@ -144,14 +160,15 @@ class MetricEngine:
                 "Synergy tools are not available (emo.synergy could not be imported)."
             ) from exc
 
-        if not hasattr(synergy_mod, "compute_synergy_for_dataframe"):
-            raise RuntimeError(
-                "Synergy module does not expose the expected "
-                "`compute_synergy_for_dataframe` function."
-            )
+        # Current public API for synergy in EMO-Core v1
+        if hasattr(synergy_mod, "compute_gaussian_synergy"):
+            result = synergy_mod.compute_gaussian_synergy(df, *args, **kwargs)
+            return _result_to_dict(result)
 
-        result = synergy_mod.compute_synergy_for_dataframe(df, *args, **kwargs)
-        return _result_to_dict(result)
+        raise RuntimeError(
+            "Synergy module does not expose the expected `compute_gaussian_synergy` "
+            "function."
+        )
 
     def reciprocity_flux(
         self,
@@ -161,20 +178,12 @@ class MetricEngine:
         """
         Compute reciprocity flux metrics.
 
-        This is a thin wrapper around `emo.reciprocity`. To keep the core
-        service layer import-safe, we *lazily* import `emo.reciprocity` here.
+        This is a thin wrapper around :mod:`emo.reciprocity`. To keep the core
+        service layer import-safe, we lazily import :mod:`emo.reciprocity` here.
 
         If the module or expected function is missing, we raise a RuntimeError
-        when this method is called, but we do not break `import emo` or
-        `import emo.services.metrics`.
-
-        Notes
-        -----
-        The concrete reciprocity implementation in `emo.reciprocity` is still
-        evolving. We therefore avoid pinning to any particular function name
-        at import time and instead check for it at call time. This keeps the
-        service layer import-safe. If a concrete `compute_reciprocity_flux`
-        function is not available, a clear RuntimeError is raised.
+        when this method is called, but we do not break ``import emo`` or
+        ``import emo.services.metrics``.
         """
         try:
             from emo import reciprocity as rec_mod  # type: ignore[attr-defined]
@@ -185,13 +194,13 @@ class MetricEngine:
             ) from exc
 
         # Preferred modern API: compute_reciprocity_fluxes (plural)
-        if rec_mod is not None and hasattr(rec_mod, "compute_reciprocity_fluxes"):
+        if hasattr(rec_mod, "compute_reciprocity_fluxes"):
             result = rec_mod.compute_reciprocity_fluxes(*args, **kwargs)
             return _result_to_dict(result)
 
         # Backwards-compatibility shim for older code paths that used
         # a singular `compute_reciprocity_flux` function.
-        if rec_mod is not None and hasattr(rec_mod, "compute_reciprocity_flux"):
+        if hasattr(rec_mod, "compute_reciprocity_flux"):
             result = rec_mod.compute_reciprocity_flux(*args, **kwargs)
             return _result_to_dict(result)
 
@@ -201,7 +210,7 @@ class MetricEngine:
         )
 
     # ------------------------------------------------------------------
-    # Sentience-mindfield (SMF) metrics
+    # Self‑Model Fidelity (SMF) metrics
     # ------------------------------------------------------------------
 
     def smf_from_dataframe(
@@ -211,10 +220,10 @@ class MetricEngine:
         **kwargs: Any,
     ) -> Dict[str, Any]:
         """
-        Compute Sentience MindField (SMF) metrics from a dataframe.
+        Compute Self‑Model Fidelity (SMF) metrics from a dataframe.
 
-        This is a direct wrapper around `emo.smf.compute_smf`, with results
-        converted into JSON-friendly structures.
+        This is a direct wrapper around :func:`emo.smf.compute_smf`, with
+        results converted into JSON-friendly structures.
         """
         result = compute_smf(df, *args, **kwargs)
         return _result_to_dict(result)
@@ -223,36 +232,10 @@ class MetricEngine:
     # UIA metrics
     # ------------------------------------------------------------------
 
-    def uia_from_dataframe(
-        self,
-        df: pd.DataFrame,
-        interface_id: str,
-        *args: Any,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-        """
-        Compute UIA metrics from a dataframe.
-
-        This is a direct wrapper around `emo.uia_engine.compute_a_uia`, which
-        returns a `UIASnapshot`. We convert that snapshot to a dictionary via
-        `UIASummary`, yielding a JSON-friendly summary suitable for API
-        responses.
-        """
-        snapshot = compute_a_uia(
-            df=df,
-            interface_id=interface_id,
-            coeffs=self._uia_coeffs,
-            *args,
-            **kwargs,
-        )
-        summary = UIASummary.from_snapshot(snapshot)
-        return _result_to_dict(summary)
-
-    def uia_summary(
+    def uia_from_series(
         self,
         interface_id: str,
-        index: pd.DatetimeIndex,
-        A_series: pd.Series,
+        R_scalar: float,
         B_scalar: float,
         C_series: pd.Series,
         S_series: pd.Series,
@@ -261,28 +244,112 @@ class MetricEngine:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> UIASummary:
         """
-        Construct a UIA summary directly from series inputs.
+        Compute UIA metrics from scalar R, B and time series C, S, I.
 
-        This helper is used by tests and provides a slightly higher-level API
-        for wrapping `compute_a_uia`. It expects time-indexed series for the
-        main UIA inputs and returns a `UIASummary` instance.
+        This is the main entry point used by the tests and the FastAPI
+        `/uia/summary` endpoint. It delegates the numerical work to
+        :func:`emo.uia_engine.compute_a_uia` and packages the result as a
+        :class:`UIASummary`.
         """
-        df = pd.DataFrame(
-            {
-                "A": A_series,
-                "C": C_series,
-                "S": S_series,
-                "I": I_series,
-            },
-            index=index,
+        snapshot = compute_a_uia(
+            R_scalar=R_scalar,
+            B_scalar=B_scalar,
+            C_series=C_series,
+            S_series=S_series,
+            I_series=I_series,
+            M_E_scalar=M_E,
+            coeffs=self._uia_coeffs,
         )
 
-        snapshot = compute_a_uia(
-            df=df,
+        return UIASummary.from_snapshot(
+            snapshot=snapshot,
             interface_id=interface_id,
-            coeffs=self._uia_coeffs,
-            B=B_scalar,
-            M_E=M_E,
-            metadata=metadata or {},
+            metadata=metadata,
         )
-        return UIASummary.from_snapshot(snapshot)
+
+    def uia_from_dataframe(
+        self,
+        df: pd.DataFrame,
+        interface_id: str,
+        *,
+        R_scalar: float,
+        B_scalar: float,
+        M_E: float,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> UIASummary:
+        """
+        Convenience wrapper for UIA aggregation when C, S and I live in a
+        dataframe.
+
+        Parameters
+        ----------
+        df:
+            Dataframe with at least three columns: ``"C"``, ``"S"`` and ``"I"``.
+        interface_id:
+            Identifier for the interface Σ.
+        R_scalar, B_scalar, M_E:
+            Scalar parameters passed through to :func:`compute_a_uia`.
+        metadata:
+            Optional extra metadata to attach to the summary.
+        """
+        try:
+            C_series = df["C"]
+            S_series = df["S"]
+            I_series = df["I"]
+        except KeyError as exc:  # pragma: no cover - helper API
+            raise KeyError("df must contain 'C', 'S' and 'I' columns") from exc
+
+        return self.uia_from_series(
+            interface_id=interface_id,
+            R_scalar=R_scalar,
+            B_scalar=B_scalar,
+            C_series=C_series,
+            S_series=S_series,
+            I_series=I_series,
+            M_E=M_E,
+            metadata=metadata,
+        )
+
+    def uia_summary(
+        self,
+        interface_id: str,
+        index: pd.DatetimeIndex,
+        A_series: pd.Series,  # kept for backwards compatibility; currently unused
+        B_scalar: float,
+        C_series: pd.Series,
+        S_series: pd.Series,
+        I_series: pd.Series,
+        M_E: float,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> UIASummary:
+        """
+        Legacy convenience wrapper for UIA aggregation.
+
+        Historically this method also accepted a precomputed ``A_series`` of
+        local UIA density. In the current formulation the core engine works in
+        terms of R, B, C, S, I and M_E. We keep this method for backwards
+        compatibility and delegate to :meth:`uia_from_series` using the
+        provided C/S/I series; ``A_series`` is accepted but ignored.
+
+        For new code, prefer :meth:`uia_from_series`, which makes the
+        dependence on R explicit.
+        """
+        # Ensure the series share the same index; compute_a_uia will perform
+        # the actual consistency checks.
+        C_series = C_series.copy()
+        C_series.index = index
+        S_series = S_series.copy()
+        S_series.index = index
+        I_series = I_series.copy()
+        I_series.index = index
+
+        return self.uia_from_series(
+            interface_id=interface_id,
+            R_scalar=1.0,  # neutral curvature placeholder
+            B_scalar=B_scalar,
+            C_series=C_series,
+            S_series=S_series,
+            I_series=I_series,
+            M_E=M_E,
+            metadata=metadata,
+        )
