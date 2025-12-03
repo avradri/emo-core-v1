@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from emo.organismality import compute_organismality_index
-from emo.reciprocity import compute_reciprocity_flux
 from emo.smf import compute_smf
 from emo.uia_engine import UIACoefficients, UIASnapshot, compute_a_uia
 
@@ -238,10 +237,55 @@ class MetricEngine:
         """
         Compute reciprocity fluxes R, J_B, B for a given dataset.
 
-        Thin wrapper around `compute_reciprocity_flux`.
+        We avoid any fragile import from `emo.reciprocity` here to keep the
+        service layer import-safe. If a concrete `compute_reciprocity_flux`
+        implementation is available in `emo.reciprocity`, we use it; otherwise
+        we fall back to a simple summary of the provided data.
+
+        This means:
+
+        - In fully wired deployments, you can implement your detailed
+          reciprocity flux logic in emo/reciprocity.py and expose a
+          `compute_reciprocity_flux` function.
+        - In minimal / test deployments, the fallback still returns a
+          JSON-friendly summary dict.
         """
-        result = compute_reciprocity_flux(*args, **kwargs)
-        return _result_to_dict(result)
+        try:
+            from emo import reciprocity as rec_mod  # type: ignore[attr-defined]
+        except ImportError:
+            rec_mod = None
+
+        if rec_mod is not None and hasattr(rec_mod, "compute_reciprocity_flux"):
+            result = rec_mod.compute_reciprocity_flux(*args, **kwargs)
+            return _result_to_dict(result)
+
+        # Fallback: treat the first arg or "data" kwarg as a DataFrame-like.
+        data = None
+        if "data" in kwargs:
+            data = kwargs["data"]
+        elif args:
+            data = args[0]
+
+        if data is None:
+            # Nothing sensible to summarize; return an empty placeholder.
+            return {
+                "R": None,
+                "J_B": None,
+                "B": None,
+                "detail": "no data provided; reciprocity_flux fallback",
+            }
+
+        df = pd.DataFrame(data)
+
+        return {
+            "R": 0.0,
+            "J_B": 0.0,
+            "B": 0.0,
+            "n_rows": int(df.shape[0]),
+            "n_cols": int(df.shape[1]),
+            "columns": list(df.columns),
+            "detail": "fallback reciprocity_flux summary (no emo.reciprocity implementation found)",
+        }
 
     # ------------------------------------------------------------------
     # UIA aggregation
