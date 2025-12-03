@@ -72,7 +72,6 @@ def emo_weekly_synergy_flow() -> None:
     runs = emo_weekly_synergy(layout=layout)
     _log_runs.submit("emo_weekly_synergy", runs)
 
-
 @flow(name="EMO Monthly OI and SMF")
 def emo_monthly_oi_smf_flow() -> None:
     """
