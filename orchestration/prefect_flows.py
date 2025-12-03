@@ -4,7 +4,26 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from prefect import flow, task
+try:  # Prefect is an optional dependency
+    from prefect import flow, task  # type: ignore[import]
+except Exception:  # pragma: no cover - graceful degradation if Prefect is missing
+    def _identity_decorator(fn=None, *args, **kwargs):
+        """Fallback no-op decorator used when Prefect is not installed.
+
+        This keeps import-time behaviour simple so that
+        `import orchestration.prefect_flows` works even when
+        the Prefect library is not available. The wrapped
+        function is returned unchanged, and any decorator
+        arguments are ignored.
+        """
+        if fn is None:
+            def wrapper(f):
+                return f
+            return wrapper
+        return fn
+
+    flow = _identity_decorator
+    task = _identity_decorator
 
 from emo.ingestion import (
     DataLakeLayout,
@@ -30,8 +49,7 @@ def emo_daily_attention_flow() -> None:
     """
     Daily Prefect flow:
 
-    - GDELT timelines
-    - Wikipedia pageviews
+    - Ingest daily attention data (e.g., IATI / WFP / other feeds).
     """
     layout = DataLakeLayout.from_env()
     runs = emo_daily_attention(layout=layout)
@@ -43,8 +61,7 @@ def emo_weekly_synergy_flow() -> None:
     """
     Weekly Prefect flow:
 
-    - OpenAlex topic timelines
-    - OWID macro indicators
+    - Run weekly synergy / O-information analyses.
     """
     layout = DataLakeLayout.from_env()
     runs = emo_weekly_synergy(layout=layout)
@@ -56,7 +73,7 @@ def emo_monthly_oi_smf_flow() -> None:
     """
     Monthly Prefect flow:
 
-    - OWID charts for OI and SMF.
+    - Compute organismality index and SMF metrics.
     """
     layout = DataLakeLayout.from_env()
     runs = emo_monthly_oi_smf(layout=layout)
