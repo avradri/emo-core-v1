@@ -47,7 +47,7 @@ class DestineConfig:
     timeout: int = 30
 
     @classmethod
-    def from_env(cls) -> "DestineConfig":
+    def from_env(cls) -> DestineConfig:
         return cls(
             hda_base_url=os.getenv("DESTINE_HDA_BASE_URL", DESTINE_HDA_DEFAULT),
             stac_base_url=os.getenv("DESTINE_STAC_BASE_URL", DESTINE_STAC_DEFAULT),
@@ -87,14 +87,12 @@ class DestineClient:
     """
     Thin client for the DestinE Harmonised Data Access (HDA) and STAC API.
 
-    This is *not* a full SDK – it is a focused, UIA/EMO-aligned adapter that:
+    This is *not* a full SDK – it is a focused, EMO-aligned adapter that:
 
     - Discovers Digital Twin collections (Climate Adaptation DT, Extremes DT).
     - Queries STAC items within time windows and bounding boxes.
     - Opens DT assets with xarray for light post-processing.
     - Produces EMO-ready hazard fingerprints for overlay with OI, SMF, GWI, etc.
-
-    The heavy-duty “near-data” workflows remain on the DestinE side.
     """
 
     def __init__(
@@ -121,11 +119,6 @@ class DestineClient:
     def list_collections(self) -> List[DestineCollectionSummary]:
         """
         List all STAC collections visible through HDA and return a simplified summary.
-
-        Notes
-        -----
-        This is a convenience wrapper; advanced users should consult the official
-        DestinE documentation and the STAC specification.
         """
         url = self._stac_url("collections")
         LOG.info("Requesting DestinE STAC collections from %s", url)
@@ -197,8 +190,12 @@ class DestineClient:
         items: List[DestineItemSummary] = []
         for feat in payload.get("features", []):
             props = feat.get("properties", {}) or {}
-            start_dt = _parse_rfc3339(props.get("start_datetime") or props.get("datetime"))
-            end_dt = _parse_rfc3339(props.get("end_datetime") or props.get("datetime"))
+            start_dt = _parse_rfc3339(
+                props.get("start_datetime") or props.get("datetime")
+            )
+            end_dt = _parse_rfc3339(
+                props.get("end_datetime") or props.get("datetime")
+            )
             raw_assets = feat.get("assets", {}) or {}
             assets: Dict[str, str] = {}
             for key, value in raw_assets.items():
@@ -233,8 +230,6 @@ class DestineClient:
     ) -> List[DestineItemSummary]:
         """
         Convenience wrapper for Climate Change Adaptation Digital Twin STAC items.
-
-        Corresponds to the data portfolio entry `EO.ECMWF.DAT....CLIMATE_ADAPTATION`.
         """
         return self.search_items(
             collection_id=CLIMATE_DT_COLLECTION_ID,
@@ -266,9 +261,6 @@ class DestineClient:
     def open_asset_as_xarray(self, href: str) -> xr.Dataset:
         """
         Open a DestinE DT asset as an xarray Dataset.
-
-        In practice this will often be a NetCDF or Zarr store mounted within
-        the HDA / near-data compute environment.
         """
         LOG.info("Opening DestinE asset %s with xarray", href)
         ds = xr.open_dataset(href)
@@ -306,7 +298,7 @@ def _parse_rfc3339(value: Any) -> Optional[datetime]:
     if not value or not isinstance(value, str):
         return None
     try:
-        # xarray / pandas handle timezone-naive ISO8601 reasonably
+        # datetime.fromisoformat understands "YYYY-MM-DDTHH:MM:SS+00:00"
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
     except Exception:
         return None
@@ -316,7 +308,7 @@ def destine_items_to_dataframe(items: Iterable[DestineItemSummary]) -> pd.DataFr
     """
     Convert a list of DestineItemSummary objects into a tabular dataframe.
     """
-    rows = []
+    rows: List[Dict[str, Any]] = []
     for item in items:
         rows.append(
             {
@@ -336,7 +328,8 @@ def summarise_variable_statistics(
     variables: Optional[Iterable[str]] = None,
     dims: Optional[Iterable[str]] = None,
 ) -> pd.DataFrame:
-    """Compute simple summary statistics for variables in a DestinE dataset.
+    """
+    Compute simple summary statistics for variables in a DestinE dataset.
 
     This helper collapses the selected dimensions (or all dimensions, if
     ``dims`` is ``None``) to produce a single row of statistics per variable.
@@ -344,8 +337,7 @@ def summarise_variable_statistics(
     Parameters
     ----------
     ds:
-        Input :class:`xarray.Dataset` or :class:`xarray.DataArray` coming from a
-        DestinE DT asset.
+        Input Dataset or DataArray coming from a DestinE DT asset.
     variables:
         Optional iterable of variable names to summarise. If omitted, all
         numeric data variables in ``ds`` are used.
@@ -422,7 +414,8 @@ def build_emo_destine_overlay(
     emo_time_col: str = "time",
     how: str = "left",
 ) -> pd.DataFrame:
-    """Align DestinE hazards with EMO metrics on a common time axis.
+    """
+    Align DestinE hazards with EMO metrics on a common time axis.
 
     The function is deliberately simple and opinionated:
 
@@ -436,8 +429,7 @@ def build_emo_destine_overlay(
     Parameters
     ----------
     hazard_df:
-        Tabular hazard indicators derived from DestinE digital twins –
-        typically derived from STAC items or sliced xarray datasets.
+        Tabular hazard indicators derived from DestinE digital twins.
     emo_metric_df:
         Tabular EMO metrics (e.g. annual SMF, OI) with a coarse-grained time
         column.
@@ -458,7 +450,9 @@ def build_emo_destine_overlay(
     """
 
     def _is_datetime_like(s: pd.Series) -> bool:
-        return pd.api.types.is_datetime64_any_dtype(s) or pd.api.types.is_datetime64tz_dtype(s)
+        return pd.api.types.is_datetime64_any_dtype(s) or pd.api.types.is_datetime64tz_dtype(
+            s
+        )
 
     def _coerce_datetime(s: pd.Series) -> pd.Series:
         if _is_datetime_like(s):
