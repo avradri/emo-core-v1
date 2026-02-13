@@ -11,7 +11,7 @@ Status: **v1.0 architecture + core engine implemented; integrations in progress*
 
 The world has built a planetary nervous system.
 
-- **Planetary boundaries** and “safe and just Earth system boundaries” now quantify how far we have pushed climate, biosphere, freshwater, nutrients and novel entities beyond a safe operating space. Multiple assessments find that at least six of nine boundaries are already transgressed, with a seventh (ocean acidification) now crossing critical thresholds.   
+- **Planetary boundaries** and “safe and just Earth system boundaries” now quantify how far we have pushed climate, biosphere, freshwater, nutrients, and novel entities beyond a safe operating space. Multiple assessments indicate that at least six of nine boundaries have already been transgressed, with a seventh (ocean acidification) now crossing critical thresholds.   
 - **Digital Earth twins**, such as the EU’s Destination Earth (DestinE), are delivering kilometre‑scale simulations of climate, extremes and impacts, built by ECMWF, ESA, EUMETSAT and partners.   
 - **Global early‑warning systems**, coordinated by UNDRR and WMO under the “Early Warnings for All” (EW4All) initiative, are rapidly expanding coverage, but critical gaps remain, especially in vulnerable regions.   
 
@@ -19,7 +19,7 @@ These infrastructures tell us, with increasing fidelity, **what the planet is do
 
 What we still do *not* have is an instrument that tells us, in real time, **how well the human species is thinking and acting in response**.
 
-> **EMO v1.0 – the Emergent Mind Observatory – is that missing instrument.**
+> **EMO v1.0 – the Emergent Mind Observatory – is that missing instrument?**
 
 EMO treats humanity plus its infrastructures as an **emergent mind** with measurable organismality, integrative information processing, global‑workspace “ignition” events, and a self‑model that should steer planetary trajectories.  Using the Universal Interface Action (UIA) as a mathematical backbone, EMO computes species‑level cognitive vital signs and maps them into a single, dimensionless “cognitive health” score for the human–Earth interface. :contentReference[oaicite:7]{index=7}  
 
@@ -42,19 +42,19 @@ This white paper explains why EMO must run **continuously**, how EMO‑Core v1.0
 
 The last decade has given us unprecedented instruments:
 
-- **Planetary boundaries and safe‑and‑just Earth system limits** quantify biophysical safety margins for climate, biosphere integrity, freshwater change, biogeochemical flows, land‑system change and novel entities.   
+- **Planetary boundaries and safe‑and‑just Earth system limits** quantify biophysical safety margins for climate, biosphere integrity, freshwater change, biogeochemical flows, land‑system change, and novel entities.   
 - **Destination Earth** and related initiatives are building high‑resolution twins of the Earth system, capable of exploring adaptation and mitigation pathways.   
 - **Early Warnings for All** aims to protect every person on Earth with multi‑hazard early‑warning systems, supported by annual global status reports.   
 
-These systems collectively answer: **Where are physical risks? How are they evolving?**  
+These systems collectively answer the question: Where are the physical risks? How are they evolving?**  
 
 They do **not** answer:
 
 - Are we acting more like a coherent organism or a fragmented swarm? (OI) :contentReference[oaicite:14]{index=14}  
-- Are our science, media, policy and financial systems processing information synergistically, or locked into redundant loops? (SΦ / Ω) :contentReference[oaicite:15]{index=15}  
+- Are our science, media, policy, and financial systems processing information synergistically, or locked into redundant loops? (SΦ / Ω) :contentReference[oaicite:15]{index=15}  
 - When a clear warning appears, does the global workspace “light up” – and does that ignition translate into policy and infrastructure? (GWI, SMF) :contentReference[oaicite:16]{index=16}  
 - Is our validated predictive capacity accelerating or stalling? (τ_I)   
-- Are we using energy and compute to actually reduce risk and heal planetary boundaries, or just to rearrange deckchairs? (M_E, semantic efficiency)   
+- Are we using energy and computing to actually reduce risk and heal planetary boundaries, or just to rearrange deckchairs? (M_E, semantic efficiency)   
 
 Without a **species‑mind diagnostic**, we are flying blind about our own collective cognition. We can see hazard fields and emissions with exquisite detail, but we do not know whether our global brain is *learning* from them, *coordinating* around them, or actively *working against* them.
 
@@ -71,15 +71,15 @@ EMO v1.0 is designed as a **dual twin**:
 - The **physical twin** (DestinE and other digital twins) simulates the Earth system – atmosphere, ocean, cryosphere, land, and selected human activities.   
 - The **cognitive twin** (EMO) measures how the species‑level mind responds to those simulations and to real‑world signals – attention, decisions, self‑models, and learning over time. :contentReference[oaicite:20]{index=20}  
 
-Together they answer both sides of the key question:
+Together, they answer both sides of the key question:
 
-> **What is the planet doing, and is the species mind keeping up?**
+> **What is the planet doing, and is the species' mind keeping up?**
 
 In UIA language, EMO treats the human–Earth boundary as an interface Σ and evaluates a local density:
 
 > _a_₍UIA₎ = α 𝓡[g_I] + β ℓ²ℬ + γ τ_C dC/dt + δ (1/S₀)dS/dt + ε (1/I₀)dI/dt + η (M_E/M₀)
 
-combining informational curvature (𝓡), focusing (ℬ), coherence (C), entropy production (S), information gain (I) and semantic efficiency (M_E) into a **single dimensionless cognitive‑health indicator**. :contentReference[oaicite:21]{index=21}  
+combining informational curvature (𝓡), focusing (ℬ), coherence (C), entropy production (S), information gain (I), and semantic efficiency (M_E) into a **single dimensionless cognitive‑health indicator**. :contentReference[oaicite:21]{index=21}  
 
 EMO is the instrument that estimates these terms for the human–Earth interface and exposes them as actionable metrics.   
 
@@ -88,16 +88,16 @@ EMO is the instrument that estimates these terms for the human–Earth interface
 EMO v1.0 continuously computes and updates:
 
 - **OI – Organismality Index**  
-  Cooperation vs conflict at species scale, built from treaties, compliance, sanctions, alliance stability and conflict diffusion. Output: global, regional and sectoral OI. :contentReference[oaicite:23]{index=23}  
+  Cooperation vs conflict at the species scale, built from treaties, compliance, sanctions, alliance stability, and conflict diffusion. Output: global, regional, and sectoral OI. :contentReference[oaicite:23]{index=23}  
 
 - **SΦ / Ω – Synergy / O‑information**  
-  Measures whether attention, science, conflict and policy streams form synergy‑dominant or redundancy‑dominated manifolds. Output: synergy maps per domain/topic. :contentReference[oaicite:24]{index=24}  
+  Measures whether attention, science, conflict, and policy streams form synergy‑dominant or redundancy‑dominated manifolds. Output: synergy maps per domain/topic. :contentReference[oaicite:24]{index=24}  
 
 - **GWI – Global Workspace Ignition**  
-  Detects when the global workspace “lights up” around a topic: spikes across news, Wikipedia, search proxies and social signals. Output: ignition timelines and maps. :contentReference[oaicite:25]{index=25}  
+  Detects when the global workspace “lights up” around a topic: spikes across news, Wikipedia, search proxies, and social signals. Output: ignition timelines and maps. :contentReference[oaicite:25]{index=25}  
 
 - **SMF – Self‑Model Fidelity**  
-  Quantifies whether self‑models (1.5 °C pathways, pandemic scenarios, other risk models) actually steer budgets, infrastructure and policy. Output: SMF per domain (climate, health, early warnings). :contentReference[oaicite:26]{index=26}  
+  Quantifies whether self‑models (1.5 °C pathways, pandemic scenarios, other risk models) actually steer budgets, infrastructure, and policy. Output: SMF per domain (climate, health, early warnings). :contentReference[oaicite:26]{index=26}  
 
 - **τ_I – Information‑time**  
   Tracks the rate at which validated predictive skill improves across domains (e.g., ECMWF/C3S climate skill, health nowcasting, economic forecasting). Output: τ_I clocks and acceleration ratios.   
@@ -125,7 +125,7 @@ EMO‑Core v1.0 is a working backend:
   OI, synergy, GWI, SMF, τ_I implemented in Python, reading from the data lake and writing metric tables. :contentReference[oaicite:32]{index=32}  
 
 - **UIA engine** (`emo/uia_engine/*`)  
-  Geometry, focusing, coherence, entropy, information and semantic‑efficiency modules that map the metric stack into _a_₍UIA₎ and UIA bands.   
+  Geometry, focusing, coherence, entropy, information, and semantic‑efficiency modules that map the metric stack into _a_₍UIA₎ and UIA bands.   
 
 - **Twin hooks** (`emo/twin_hooks/*`)  
   Integration with DestinE’s Harmonised Data Access (HDA) and STAC APIs, converting digital‑twin outputs into EMO‑ready hazard fingerprints and dual‑twin overlays (DestinE hazard × EMO cognition).   
@@ -136,11 +136,11 @@ EMO‑Core v1.0 is a working backend:
 - **Dashboard** (`dashboard/`)  
   A minimal Next.js app that renders:
   - A **UIA gauge** (“climate cognition” proxy) from `/v1/uia/destine/summary`.  
-  - A **scenario table** listing DestinE climate scenarios with OI, SMF, Ω, GWI and τ_I overlays.
+  - A **scenario table** listing DestinE climate scenarios with OI, SMF, Ω, GWI, and τ_I overlays.
 
 EMO already runs as:
 
-- A **daily / weekly / monthly / yearly pipeline suite** orchestrated via Prefect or Airflow. :contentReference[oaicite:35]{index=35}  
+- A **daily / weekly/monthly/yearly pipeline suite** orchestrated via Prefect or Airflow. :contentReference[oaicite:35]{index=35}  
 - A **REST API** consumable by DestinE frontends, early‑warning dashboards, and third‑party visualisations.  
 
 EMO v1.0 is therefore not speculative: the core infrastructure exists and can be put into continuous operation with modest resources.
@@ -174,7 +174,7 @@ For DestinE and its partners, EMO provides:
 - A **cognitive KPI** for twin utilisation (τ_I, SMF).  
 - A **human‑behaviour feedback loop**: how forecasts change attention and policy over time.  
 
-### 4.2 Early Warnings for All and disaster‑risk systems
+### 4.2 Early Warnings for All and Disaster-Risk Systems
 
 UNDRR/WMO’s “Early Warnings for All” initiative has rapidly expanded multi‑hazard early‑warning coverage, but recent global status reports still highlight critical gaps in vulnerable countries.   
 
@@ -192,7 +192,7 @@ EMO adds a **cognition layer** to this effort:
 For multilateral banks and climate‑risk funds, EMO becomes a way to:
 
 - Prioritise investments where **marginal cognitive gains** (better warnings, better coordination) yield the largest risk reduction.  
-- Track the **return on investment** of early‑warning capacity in terms of improved OI, SMF and M_E (risk reduction per joule / per dollar).   
+- Track the **return on investment** of early‑warning capacity in terms of improved OI, SMF, and M_E (risk reduction per joule / per dollar).   
 
 ### 4.3 Planetary boundaries & planetary‑health dashboards
 
@@ -212,13 +212,13 @@ That kind of **semantic‑efficiency view** is currently missing from major dash
 
 ### 4.4 AI governance & societal alignment
 
-Frontier AI systems are themselves **interfaces** with measurable informational curvature, energy cost and semantic efficiency.  EMO can:
+Frontier AI systems are themselves **interfaces** with measurable informational curvature, energy cost, and semantic efficiency.  EMO can:
 
 - Treat AI labs and AI‑saturated platforms as Σ interfaces in the UIA ledger.  
 - Estimate M_E / M₀ (benefit per joule) for different governance regimes and deployment patterns.  
 - Track whether AI‑enabled cognition is **improving** species‑mind vitality (higher OI, SMF, τ_I) or **eroding** it (disinformation, polarisation, cognitive overload).
 
-For AI labs and regulators, this provides a way to connect **AI energy accounting** with **planetary‑health and planetary‑cognition outcomes** in one consistent framework.   
+For AI labs and regulators, this provides a way to connect **AI energy accounting** with **planetary‑health and planetary‑cognition outcomes** within a single, consistent framework.   
 
 ---
 
@@ -231,7 +231,7 @@ As of this white paper, EMO‑Core v1.0 delivers:
 - **Architecture:** A five‑layer design (Interface Registry, Data Ingestion & Harmonisation, Reciprocity & UIA Engine, Species‑Mind & Planetary Health, Interface & Governance).   
 - **Live pipelines:** Daily (GDELT+Wikipedia), weekly (OpenAlex+OWID), monthly (OI & SMF inputs), yearly (τ_I inputs). :contentReference[oaicite:45]{index=45}  
 - **Metric engines:** OI, SΦ/Ω, GWI, SMF, τ_I, reciprocity fluxes. :contentReference[oaicite:46]{index=46}  
-- **UIA engine (prototype):** Informational curvature, focusing indices, coherence and entropy/information flows mapped into _a_₍UIA₎ and bands for the human–Earth interface.   
+- **UIA engine (prototype):** Informational curvature, focusing indices, coherence, and entropy/information flows mapped into _a_₍UIA₎ and bands for the human–Earth interface.   
 - **DestinE hooks:** Working STAC/HDA client and hazard‑summary module.   
 - **API + dashboard:** FastAPI backend and a small but funder‑ready Next.js front‑end with a UIA gauge and dual‑twin scenario table.
 
@@ -246,11 +246,11 @@ This is enough to:
 With anchor funding and institutional partners, we propose:
 
 1. **Full UIA engine and calibration**  
-   - Extend curvature and focusing estimates across climate, economic and epidemiological model ensembles.  
-   - Calibrate UIA universality classes across bench‑top Ξ‑light experiments, biological regulation assays and EMO planetary metrics, closing the loop from lab to planet.   
+   - Extend curvature and focusing estimates across climate, economic, and epidemiological model ensembles.  
+   - Calibrate UIA universality classes across bench‑top Ξ‑light experiments, biological regulation assays, and EMO planetary metrics, closing the loop from lab to planet.   
 
 2. **Global Early Warning Cognition Index (EWCI)**  
-   - Develop, validate and publish EWCI by region and hazard.  
+   - Develop, validate, and publish EWCI by region and hazard.  
    - Integrate EWCI into UNDRR/WMO global status reports as an optional module.   
 
 3. **DestinE co‑development**  
@@ -273,7 +273,7 @@ Treating humanity as an “emergent mind” is powerful—and potentially danger
 Core principles:
 
 - **Open by default**  
-  Methods, code and most data will be open and reproducible, subject to privacy and security constraints.   
+  Methods, code, and most data will be open and reproducible, subject to privacy and security constraints.   
 
 - **Polycentric governance**  
   A governing board with representation from:
@@ -285,10 +285,10 @@ Core principles:
   EMO operates at **macro**, aggregated levels (countries, sectors, global networks). It is explicitly not designed for individual‑level profiling or control.
 
 - **Metrics as inputs, not oracles**  
-  EMO indicators are **diagnostics** to support deliberation, not commands. We will actively resist narratives that treat OI, SMF or Ȧ₍UIA₎ as justification for coercive measures.
+  EMO indicators are **diagnostics** to support deliberation, not commands. We will actively resist narratives that treat OI, SMF, or Ȧ₍UIA₎ as justification for coercive measures.
 
 - **Ethics panel and red‑team**  
-  A standing ethics panel and a technical red‑team to stress‑test EMO for misuse risks, including political capture, narrative manipulation and unjustified centralisation.
+  A standing ethics panel and a technical red team to stress‑test EMO for misuse risks, including political capture, narrative manipulation, and unjustified centralisation.
 
 ---
 
@@ -306,7 +306,7 @@ This is precisely the moment to establish a **cognitive layer** that can plug in
 
 EMO is a **leverage play**:
 
-- One comparatively small, open infrastructure project that amplifies the impact of **billions of euros** in digital‑twin, early‑warning and risk‑analytics investments.  
+- One comparatively small, open infrastructure project that amplifies the impact of **billions of euros** in digital‑twin, early‑warning, and risk‑analytics investments.  
 - A single UIA‑based ledger that allows diverse funders (climate, AI, health, resilience) to see how their programmes interact at the level of species‑mind cognition.   
 
 ### 7.3 Uniqueness
@@ -330,19 +330,19 @@ We are seeking:
 
 2. **Co‑development partners**  
    - Digital‑twin providers (ECMWF/DestinE, NASA Earth Science, ocean digital twins).   
-   - UN agencies and regional climate centres working on early warnings and risk dashboards.   
+   - UN agencies and regional climate centres are working on early warnings and risk dashboards.   
    - AI labs and AI‑governance bodies interested in energy‑aware, meaning‑per‑joule metrics.
 
 3. **Research collaborators**  
-   - Labs in information geometry, non‑equilibrium thermodynamics, complex systems and planetary science to help sharpen and test EMO’s UIA mappings and falsifiable predictions.   
+   - Labs in information geometry, non‑equilibrium thermodynamics, complex systems, and planetary science to help sharpen and test EMO’s UIA mappings and falsifiable predictions.   
 
 ---
 
 ## 9. Call to action
 
-In 2023, the Earth Commission wrote that justice is a prerequisite for a safe and just Earth system, and that we still have a window to change course.  In 2025, UN leadership reiterated that multi‑hazard early‑warning systems can cut disaster losses dramatically, but only if they are actually used.   
+In 2023, the Earth Commission wrote that justice is a prerequisite for a safe and just Earth system, and that we still have a window to change course.  In 2025, UN leadership reiterated that multi‑hazard early‑warning systems can dramatically reduce disaster losses, but only if they are used.   
 
-The missing piece is a **continuous instrument** that tells us, at planetary scale, whether our species‑level cognition is keeping up with the crises we are creating—and whether the billions we invest in data, models and institutions are actually improving that cognition.
+The missing piece is a **continuous instrument** that tells us, at a planetary scale, whether our species‑level cognition is keeping up with the crises we are creating—and whether the billions we invest in data, models, and institutions are actually improving that cognition.
 
 The Emergent Mind Observatory is designed to be that instrument.
 
