@@ -38,8 +38,34 @@ def get_dac_compare(
         )
 
     metrics = get_disaster_compare_demo_metrics()
+    left_metrics = metrics["left"]
+    right_metrics = metrics["right"]
 
     return DACCompareResponse(
-        left=DACCompareSide(**metrics["left"]),
-        right=DACCompareSide(**metrics["right"]),
+        left=DACCompareSide(
+            jurisdiction=str(left_metrics["jurisdiction"]),
+            warning_to_policy_lag_days=(
+                int(left_metrics["warning_to_policy_lag_days"])
+                if left_metrics["warning_to_policy_lag_days"] is not None
+                else None
+            ),
+            declared_vs_funded_gap=(
+                float(left_metrics["declared_vs_funded_gap"])
+                if left_metrics["declared_vs_funded_gap"] is not None
+                else None
+            ),
+        ),
+        right=DACCompareSide(
+            jurisdiction=str(right_metrics["jurisdiction"]),
+            warning_to_policy_lag_days=(
+                int(right_metrics["warning_to_policy_lag_days"])
+                if right_metrics["warning_to_policy_lag_days"] is not None
+                else None
+            ),
+            declared_vs_funded_gap=(
+                float(right_metrics["declared_vs_funded_gap"])
+                if right_metrics["declared_vs_funded_gap"] is not None
+                else None
+            ),
+        ),
     )
