@@ -357,11 +357,11 @@ def summarise_variable_statistics(
         ds = ds.to_dataset(name=name)
 
     if variables is None:
-        var_names: List[str] = [
-            name
-            for name, da in ds.data_vars.items()
-            if getattr(getattr(da, "dtype", None), "kind", "") in {"i", "u", "f"}
-        ]
+    var_names: list[str] = [
+        str(name)
+        for name, da in ds.data_vars.items()
+        if getattr(getattr(da, "dtype", None), "kind", "") in {"i", "u", "f"}
+    ]
     else:
         var_names = list(variables)
 
