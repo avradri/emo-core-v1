@@ -25,4 +25,11 @@ def get_dac_metrics_summary(
         )
 
     metrics = get_romania_disaster_demo_metrics()
-    return DACMetricsSummaryResponse(**metrics)
+
+    return DACMetricsSummaryResponse(
+        warning_to_policy_lag_days=metrics["warning_to_policy_lag_days"],
+        warning_to_delivery_lag_days=metrics["warning_to_delivery_lag_days"],
+        alert_to_policy_conversion_rate=metrics["alert_to_policy_conversion_rate"],
+        implementation_persistence_30d=metrics["implementation_persistence_30d"],
+        declared_vs_funded_gap=metrics["declared_vs_funded_gap"],
+    )
