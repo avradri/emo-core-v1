@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import dict
-
 from fastapi import APIRouter
 
 from emo.data_sources import InterfaceRegistry
@@ -11,11 +9,10 @@ _registry = InterfaceRegistry()
 
 
 @router.get("/")
-async def list_interfaces() -> Dict[str, Dict]:
-    """
-    Return a list of interfaces Σ_i known to the in-memory registry.
-    """
-    data = {}
+async def list_interfaces() -> dict[str, dict]:
+    """Return a list of interfaces Σ_i known to the in-memory registry."""
+    data: dict[str, dict] = {}
+
     for iid, iface in _registry.list().items():
         data[iid] = {
             "id": iface.id,
@@ -26,4 +23,5 @@ async def list_interfaces() -> Dict[str, Dict]:
             "base_url": iface.base_url,
             "uia_roles": iface.uia_roles,
         }
+
     return data
