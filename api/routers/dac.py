@@ -22,18 +22,28 @@ def get_dac_domains():
 
 
 @router.get("/events", response_model=DACEventsResponse)
-def get_events():
-    return get_dac_events()
+def get_events(
+    domain: str | None = None,
+    jurisdiction: str | None = None,
+):
+    return get_dac_events(domain=domain, jurisdiction=jurisdiction)
 
 
 @router.get("/compare", response_model=DACCompareResponse)
-def get_compare():
-    return get_dac_compare()
+def get_compare(
+    domain: str | None = None,
+    left: str | None = None,
+    right: str | None = None,
+):
+    return get_dac_compare(domain=domain, left=left, right=right)
 
 
 @router.get("/metrics/summary", response_model=DACMetricsSummaryResponse)
-def get_metrics_summary():
-    return get_dac_metrics_summary()
+def get_metrics_summary(
+    domain: str | None = None,
+    jurisdiction: str | None = None,
+):
+    return get_dac_metrics_summary(domain=domain, jurisdiction=jurisdiction)
 
 
 @router.get("/modes/current", response_model=DACModeResponse)
