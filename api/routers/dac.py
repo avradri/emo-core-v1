@@ -1,9 +1,11 @@
 from fastapi import APIRouter
 
 from api.schemas.dac import DACDomainsResponse
+from api.schemas.dac_compare import DACCompareResponse
 from api.schemas.dac_events import DACEventsResponse
 from api.schemas.dac_metrics import DACMetricsSummaryResponse
 from api.schemas.dac_mode import DACModeResponse
+from api.services.dac_compare_service import get_dac_compare
 from api.services.dac_events_service import get_dac_events
 from api.services.dac_metrics_service import get_dac_metrics_summary
 from api.services.dac_mode_service import get_current_dac_mode
@@ -20,6 +22,11 @@ def get_dac_domains():
 @router.get("/events", response_model=DACEventsResponse)
 def get_events():
     return get_dac_events()
+
+
+@router.get("/compare", response_model=DACCompareResponse)
+def get_compare():
+    return get_dac_compare()
 
 
 @router.get("/metrics/summary", response_model=DACMetricsSummaryResponse)
