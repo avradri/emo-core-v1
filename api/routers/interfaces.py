@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import dict
 
 from fastapi import APIRouter
 
