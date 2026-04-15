@@ -35,8 +35,11 @@ def get_compare():
 
 
 @router.get("/metrics/summary", response_model=DACMetricsSummaryResponse)
-def get_metrics_summary():
-    return get_dac_metrics_summary()
+def get_metrics_summary(
+    domain: str | None = None,
+    jurisdiction: str | None = None,
+):
+    return get_dac_metrics_summary(domain=domain, jurisdiction=jurisdiction)
 
 
 @router.get("/modes/current", response_model=DACModeResponse)
