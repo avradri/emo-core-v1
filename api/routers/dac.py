@@ -30,8 +30,12 @@ def get_events(
 
 
 @router.get("/compare", response_model=DACCompareResponse)
-def get_compare():
-    return get_dac_compare()
+def get_compare(
+    domain: str | None = None,
+    left: str | None = None,
+    right: str | None = None,
+):
+    return get_dac_compare(domain=domain, left=left, right=right)
 
 
 @router.get("/metrics/summary", response_model=DACMetricsSummaryResponse)
