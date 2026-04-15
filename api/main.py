@@ -20,21 +20,16 @@ app = FastAPI(
     description=DESCRIPTION,
 )
 
-# Routers ----------------------------------------------------------------
 app.include_router(metrics.router)
 app.include_router(uia.router)
 app.include_router(dac.router)
 
-# Health & meta ----------------------------------------------------------
-
 
 @app.get("/health", tags=["meta"])
 async def health() -> dict:
-    """Basic health check for load balancers and smoke tests."""
     return {"status": "ok"}
 
 
 @app.get("/version", tags=["meta"])
 async def version() -> dict:
-    """Return the EMO-Core library version as seen by this service."""
     return {"version": getattr(emo, "__version__", "0.1.0")}
