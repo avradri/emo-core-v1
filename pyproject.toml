@@ -60,7 +60,7 @@ Homepage = "https://github.com/avradri/emo-core-v1"
 Source = "https://github.com/avradri/emo-core-v1"
 Issues = "https://github.com/avradri/emo-core-v1/issues"
 
-[too[tool.setuptools.packages.find]
+[tool.setuptools.packages.find]
 where = ["."]
 include = ["emo*", "api*", "orchestration*"]
 
