@@ -25,7 +25,6 @@ def summarise_variable_statistics(
         One row per variable with columns:
         ``variable``, ``mean``, ``std``, ``min``, ``max``, ``count``.
     """
-    # Normalise input to a Dataset
     if isinstance(ds, xr.DataArray):
         name = ds.name or "value"
         ds = ds.to_dataset(name=name)
@@ -40,20 +39,17 @@ def summarise_variable_statistics(
         var_names = list(variables)
 
     dims_list: Optional[list[str]] = list(dims) if dims is not None else None
-
     rows: list[dict[str, Any]] = []
 
     for name in var_names:
         if name not in ds.data_vars:
-            # Be forgiving – callers may pass a superset of variables.
             continue
 
         da = ds.data_vars[name]
 
         if dims_list is None:
-            reduce_dims = None  # xarray: reduce over all dimensions
+            reduce_dims = None
         else:
-            # Only keep dimensions that are present in this DataArray.
             reduce_dims = [d for d in dims_list if d in da.dims] or None
 
         mean_da = da.mean(dim=reduce_dims, skipna=True)
@@ -62,7 +58,6 @@ def summarise_variable_statistics(
         max_da = da.max(dim=reduce_dims, skipna=True)
         count_da = da.count(dim=reduce_dims)
 
-        # xarray returns 0-D arrays; .item() gives us a Python scalar.
         mean = float(mean_da.values.item())
         std = float(std_da.values.item()) if std_da.size else float("nan")
         min_ = float(min_da.values.item())
