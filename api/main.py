@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import emo
 from fastapi import FastAPI
-
-from api.routers import metrics, uia
+from api.routers import dac, metrics, uia
 
 DESCRIPTION = """
 EMO-Core API
@@ -25,6 +24,7 @@ app = FastAPI(
 
 app.include_router(metrics.router)
 app.include_router(uia.router)
+app.include_router(dac.router)
 
 
 # Health & meta ----------------------------------------------------------
