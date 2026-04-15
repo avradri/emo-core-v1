@@ -1,10 +1,14 @@
-from typing import Dict
+from collections.abc import Mapping
 
 
-def infer_behavioral_mode(metrics: Dict[str, float]) -> str:
-    warning_to_policy_lag = metrics.get("warning_to_policy_lag_days", 0)
-    persistence_30d = metrics.get("implementation_persistence_30d", 1.0)
-    contradiction = metrics.get("declared_vs_funded_gap", 0.0)
+def infer_behavioral_mode(metrics: Mapping[str, float | int | None]) -> str:
+    warning_to_policy_lag_raw = metrics.get("warning_to_policy_lag_days", 0)
+    persistence_30d_raw = metrics.get("implementation_persistence_30d", 1.0)
+    contradiction_raw = metrics.get("declared_vs_funded_gap", 0.0)
+
+    warning_to_policy_lag = float(warning_to_policy_lag_raw or 0)
+    persistence_30d = float(persistence_30d_raw or 0.0)
+    contradiction = float(contradiction_raw or 0.0)
 
     if contradiction > 0.5:
         return "contradictory_action"
