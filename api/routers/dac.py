@@ -26,4 +26,21 @@ def get_events():
     return get_dac_events()
 
 
-@router.get("/compare
+@router.get("/compare", response_model=DACCompareResponse)
+def get_compare():
+    return get_dac_compare()
+
+
+@router.get("/metrics/summary", response_model=DACMetricsSummaryResponse)
+def get_metrics_summary():
+    return get_dac_metrics_summary()
+
+
+@router.get("/modes/current", response_model=DACModeResponse)
+def get_current_mode():
+    return get_current_dac_mode()
+
+
+@router.get("/report/snapshot", response_model=DACSnapshotResponse)
+def get_snapshot():
+    return get_dac_snapshot()
