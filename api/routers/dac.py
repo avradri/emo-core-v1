@@ -22,8 +22,11 @@ def get_dac_domains():
 
 
 @router.get("/events", response_model=DACEventsResponse)
-def get_events():
-    return get_dac_events()
+def get_events(
+    domain: str | None = None,
+    jurisdiction: str | None = None,
+):
+    return get_dac_events(domain=domain, jurisdiction=jurisdiction)
 
 
 @router.get("/compare", response_model=DACCompareResponse)
