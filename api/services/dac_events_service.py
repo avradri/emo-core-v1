@@ -1,28 +1,24 @@
-from api.schemas.dac_events import DACEventRecord, DACEventsResponse
+from api.schemas.dac_metrics import DACMetricsSummaryResponse
 from api.services.dac_demo_flow_service import get_romania_disaster_demo_flow
+from emo.metrics.dac.contradiction import declared_vs_funded_gap
+from emo.metrics.dac.lag import (
+    warning_to_delivery_lag_days,
+    warning_to_policy_lag_days,
+)
+from emo.metrics.dac.persistence import implementation_persistence_30d
 
 
-def get_dac_events() -> DACEventsResponse:
+def get_dac_metrics_summary() -> DACMetricsSummaryResponse:
     flow = get_romania_disaster_demo_flow()
 
     diagnostic = flow["diagnostic"]
     policy = flow["policy"]
+    delivery = flow["delivery"]
 
-    return DACEventsResponse(
-        events=[
-            DACEventRecord(
-                id=diagnostic.id,
-                kind="diagnostic",
-                domain=diagnostic.domain,
-                jurisdiction=diagnostic.geo_scope or "UNKNOWN",
-                timestamp=diagnostic.issued_at,
-            ),
-            DACEventRecord(
-                id=policy.id,
-                kind="policy",
-                domain=diagnostic.domain,
-                jurisdiction=policy.jurisdiction,
-                timestamp=policy.announced_at,
-            ),
-        ]
+    return DACMetricsSummaryResponse(
+        warning_to_policy_lag_days=warning_to_policy_lag_days(diagnostic, policy),
+        warning_to_delivery_lag_days=warning_to_delivery_lag_days(diagnostic, delivery),
+        alert_to_policy_conversion_rate=1.0,
+        implementation_persistence_30d=implementation_persistence_30d(1, 1),
+        declared_vs_funded_gap=declared_vs_funded_gap(1, 1),
     )
