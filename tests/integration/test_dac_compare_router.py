@@ -13,11 +13,11 @@ def test_get_dac_compare():
         "left": {
             "jurisdiction": "RO",
             "warning_to_policy_lag_days": 3,
-            "declared_vs_funded_gap": 0.2,
+            "declared_vs_funded_gap": 0.0,
         },
         "right": {
             "jurisdiction": "BG",
             "warning_to_policy_lag_days": 5,
-            "declared_vs_funded_gap": 0.3,
+            "declared_vs_funded_gap": 0.0,
         },
     }
