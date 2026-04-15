@@ -62,7 +62,7 @@ Issues = "https://github.com/avradri/emo-core-v1/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["emo", "api", "orchestration"]
+include = ["emo*", "api*", "orchestration*"]
 
 [tool.ruff]
 line-length = 88
