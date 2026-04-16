@@ -141,4 +141,4 @@ def log_pipeline_run(
         run.status,
         run.records,
         run.duration_seconds,
-    )
+        )
