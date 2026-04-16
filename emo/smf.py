@@ -69,4 +69,4 @@ def compute_smf(
         smf_score=smf_score,
         lag_days=best_lag,
         metadata={"definition": "max_lagged_corr_v1.0"},
-    )
+        )
