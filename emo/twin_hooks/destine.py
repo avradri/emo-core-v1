@@ -16,8 +16,8 @@ from emo.config import USER_AGENT
 
 LOG = logging.getLogger(__name__)
 
-DESTINE_HDA_DEFAULT = "https://hda-01.destine.eu"  # placeholder; update when stable
-DESTINE_STAC_DEFAULT = "https://hda-01.destine.eu/stac"  # placeholder
+DESTINE_HDA_DEFAULT = "https://hda-01.destine.eu"
+DESTINE_STAC_DEFAULT = "https://hda-01.destine.eu/stac"
 
 CLIMATE_DT_COLLECTION_ID = "EO.ECMWF.DAT.DESTINE.CLIMATE_ADAPTATION"
 EXTREMES_DT_COLLECTION_ID = "EO.ECMWF.DAT.DESTINE.EXTREMES"
@@ -27,17 +27,6 @@ EXTREMES_DT_COLLECTION_ID = "EO.ECMWF.DAT.DESTINE.EXTREMES"
 class DestineConfig:
     """
     Configuration for connecting EMO to DestinE Harmonised Data Access (HDA).
-
-    - hda_base_url: root of the HDA service
-    - stac_base_url: root of the STAC v2 API
-    - token: OAuth2 bearer token obtained via DestinE Core Service Platform
-    - timeout: HTTP timeout in seconds
-
-    Environment variables (optional):
-    - DESTINE_HDA_BASE_URL
-    - DESTINE_STAC_BASE_URL
-    - DESTINE_TOKEN
-    - DESTINE_TIMEOUT
     """
 
     hda_base_url: str = DESTINE_HDA_DEFAULT
@@ -71,7 +60,7 @@ class DestineCollectionSummary:
 @dataclass
 class DestineItemSummary:
     """
-    Minimal description of a DestinE STAC item (a single DT product).
+    Minimal description of a DestinE STAC item.
     """
 
     id: str
@@ -79,18 +68,12 @@ class DestineItemSummary:
     start_datetime: datetime | None
     end_datetime: datetime | None
     geometry: dict[str, Any] | None
-    assets: dict[str, str]  # asset key -> href
+    assets: dict[str, str]
 
 
 class DestineClient:
     """
     Thin client for the DestinE Harmonised Data Access (HDA) and STAC API.
-
-    This is *not* a full SDK – it is a focused, EMO-aligned adapter that:
-    - Discovers Digital Twin collections (Climate Adaptation DT, Extremes DT).
-    - Queries STAC items within time windows and bounding boxes.
-    - Opens DT assets with xarray for light post-processing.
-    - Produces EMO-ready hazard fingerprints for overlay with OI, SMF, GWI, etc.
     """
 
     def __init__(
@@ -106,9 +89,6 @@ class DestineClient:
             headers["Authorization"] = f"Bearer {self.config.token}"
         self.session.headers.update(headers)
 
-    # ------------------------------------------------------------------
-    # STAC helpers
-    # ------------------------------------------------------------------
     def _stac_url(self, path: str) -> str:
         base = self.config.stac_base_url.rstrip("/")
         return f"{base}/{path.lstrip('/')}"
@@ -153,19 +133,6 @@ class DestineClient:
     ) -> list[DestineItemSummary]:
         """
         Generic STAC search.
-
-        Parameters
-        ----------
-        collection_id:
-            STAC collection identifier (e.g. for Climate DT or Extremes DT).
-        datetime_range:
-            Optional (start, end) datetime interval.
-        bbox:
-            Optional spatial bounding box [minx, miny, maxx, maxy].
-        limit:
-            Maximum number of items to return.
-        query:
-            Optional STAC "query" structure for advanced filtering.
         """
         url = self._stac_url("search")
         body: dict[str, Any] = {"collections": [collection_id], "limit": limit}
@@ -217,9 +184,6 @@ class DestineClient:
             )
         return items
 
-    # ------------------------------------------------------------------
-    # Digital Twin convenience wrappers
-    # ------------------------------------------------------------------
     def fetch_climate_dt_items(
         self,
         datetime_range: tuple[datetime, datetime] | None = None,
@@ -252,16 +216,12 @@ class DestineClient:
             limit=limit,
         )
 
-    # ------------------------------------------------------------------
-    # Data access helpers (xarray)
-    # ------------------------------------------------------------------
     def open_asset_as_xarray(self, href: str) -> xr.Dataset:
         """
-        Open a DestinE DT asset as an xarray Dataset.
+        Open a DestinE asset as an xarray Dataset.
         """
         LOG.info("Opening DestinE asset %s with xarray", href)
-        ds = xr.open_dataset(href)
-        return ds
+        return xr.open_dataset(href)
 
     def download_asset(
         self,
@@ -270,18 +230,17 @@ class DestineClient:
         chunk_size: int = 1024 * 1024,
     ) -> Path:
         """
-        Stream a DT asset to local disk. This is mainly intended for small test
-        slices rather than full production pipelines, which should run near-data.
+        Stream a DT asset to local disk.
         """
         LOG.info("Downloading DestinE asset %s to %s", href, target_path)
         resp = self.session.get(href, stream=True, timeout=self.config.timeout)
         resp.raise_for_status()
 
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        with target_path.open("wb") as f:
+        with target_path.open("wb") as file_obj:
             for chunk in resp.iter_content(chunk_size=chunk_size):
                 if chunk:
-                    f.write(chunk)
+                    file_obj.write(chunk)
         return target_path
 
 
@@ -323,26 +282,6 @@ def summarise_variable_statistics(
 ) -> pd.DataFrame:
     """
     Compute simple summary statistics for variables in a DestinE dataset.
-
-    This helper collapses the selected dimensions (or all dimensions, if
-    ``dims`` is ``None``) to produce a single row of statistics per variable.
-
-    Parameters
-    ----------
-    ds:
-        Input Dataset or DataArray coming from a DestinE DT asset.
-    variables:
-        Optional iterable of variable names to summarise. If omitted, all
-        numeric data variables in ``ds`` are used.
-    dims:
-        Optional iterable of dimension names to reduce over. If omitted,
-        all dimensions of each variable are reduced.
-
-    Returns
-    -------
-    pandas.DataFrame
-        One row per variable with columns:
-        ``variable``, ``mean``, ``std``, ``min``, ``max``, ``count``.
     """
     if isinstance(ds, xr.DataArray):
         name = ds.name or "value"
@@ -351,8 +290,8 @@ def summarise_variable_statistics(
     if variables is None:
         var_names: list[str] = [
             str(name)
-            for name, da in ds.data_vars.items()
-            if getattr(getattr(da, "dtype", None), "kind", "") in {"i", "u", "f"}
+            for name, data_array in ds.data_vars.items()
+            if getattr(getattr(data_array, "dtype", None), "kind", "") in {"i", "u", "f"}
         ]
     else:
         var_names = list(variables)
@@ -364,33 +303,27 @@ def summarise_variable_statistics(
         if name not in ds.data_vars:
             continue
 
-        da = ds.data_vars[name]
+        data_array = ds.data_vars[name]
 
         if dims_list is None:
             reduce_dims = None
         else:
-            reduce_dims = [d for d in dims_list if d in da.dims] or None
+            reduce_dims = [dim for dim in dims_list if dim in data_array.dims] or None
 
-        mean_da = da.mean(dim=reduce_dims, skipna=True)
-        std_da = da.std(dim=reduce_dims, skipna=True)
-        min_da = da.min(dim=reduce_dims, skipna=True)
-        max_da = da.max(dim=reduce_dims, skipna=True)
-        count_da = da.count(dim=reduce_dims)
-
-        mean = float(mean_da.values.item())
-        std = float(std_da.values.item()) if std_da.size else float("nan")
-        min_ = float(min_da.values.item())
-        max_ = float(max_da.values.item())
-        count = int(count_da.values.item())
+        mean_da = data_array.mean(dim=reduce_dims, skipna=True)
+        std_da = data_array.std(dim=reduce_dims, skipna=True)
+        min_da = data_array.min(dim=reduce_dims, skipna=True)
+        max_da = data_array.max(dim=reduce_dims, skipna=True)
+        count_da = data_array.count(dim=reduce_dims)
 
         rows.append(
             {
                 "variable": name,
-                "mean": mean,
-                "std": std,
-                "min": min_,
-                "max": max_,
-                "count": count,
+                "mean": float(mean_da.values.item()),
+                "std": float(std_da.values.item()) if std_da.size else float("nan"),
+                "min": float(min_da.values.item()),
+                "max": float(max_da.values.item()),
+                "count": int(count_da.values.item()),
             }
         )
 
@@ -406,50 +339,20 @@ def build_emo_destine_overlay(
 ) -> pd.DataFrame:
     """
     Align DestinE hazards with EMO metrics on a common time axis.
-
-    The function is deliberately simple and opinionated:
-
-    - If the hazard time column is datetime-like and the EMO time column is
-      numeric (e.g. a ``year`` field), hazards are grouped by calendar year and
-      joined to the EMO metrics on that year.
-    - If both columns are datetime-like, they are normalised to dates and
-      joined on that date.
-    - Otherwise a direct merge between the two columns is performed.
-
-    Parameters
-    ----------
-    hazard_df:
-        Tabular hazard indicators derived from DestinE digital twins.
-    emo_metric_df:
-        Tabular EMO metrics (e.g. annual SMF, OI) with a coarse-grained time
-        column.
-    hazard_time_col:
-        Name of the time-like column in ``hazard_df`` (default:
-        ``"start_datetime"``).
-    emo_time_col:
-        Name of the time-like column in ``emo_metric_df`` (default: ``"time"``).
-    how:
-        Merge mode passed to :func:`pandas.merge` (default: ``"left"``).
-
-    Returns
-    -------
-    pandas.DataFrame
-        Combined table with an ``overlay_time`` column plus the original
-        hazard and EMO metric fields.
     """
 
-    def _is_datetime_like(s: pd.Series) -> bool:
+    def _is_datetime_like(series: pd.Series) -> bool:
         return pd.api.types.is_datetime64_any_dtype(
-            s
-        ) or pd.api.types.is_datetime64tz_dtype(s)
+            series
+        ) or pd.api.types.is_datetime64tz_dtype(series)
 
-    def _coerce_datetime(s: pd.Series) -> pd.Series:
-        if _is_datetime_like(s):
-            return s
-        if pd.api.types.is_numeric_dtype(s):
-            return s
-        coerced = pd.to_datetime(s, errors="ignore", utc=False)
-        return coerced if _is_datetime_like(coerced) else s
+    def _coerce_datetime(series: pd.Series) -> pd.Series:
+        if _is_datetime_like(series):
+            return series
+        if pd.api.types.is_numeric_dtype(series):
+            return series
+        coerced = pd.to_datetime(series, errors="ignore", utc=False)
+        return coerced if _is_datetime_like(coerced) else series
 
     hazards = hazard_df.copy()
     metrics = emo_metric_df.copy()
@@ -486,5 +389,4 @@ def build_emo_destine_overlay(
         how=how,
         suffixes=("_hazard", "_emo"),
     )
-    merged = merged.rename(columns={overlay_col: "overlay_time"})
-    return merged
+    return merged.rename(columns={overlay_col: "overlay_time"})
