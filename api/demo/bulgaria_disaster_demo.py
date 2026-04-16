@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 from emo.models.delivery_trace import DeliveryTrace
 from emo.models.diagnostic_event import DiagnosticEvent
 from emo.models.policy_instrument import PolicyInstrument
-
 
 BULGARIA_DISASTER_DIAGNOSTIC = DiagnosticEvent(
     id="diag-bg-001",
