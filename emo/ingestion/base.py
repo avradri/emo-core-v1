@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -95,7 +95,7 @@ class PipelineRun:
 
 
 def now_utc() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def ensure_parent(path: Path) -> None:
@@ -141,4 +141,4 @@ def log_pipeline_run(
         run.status,
         run.records,
         run.duration_seconds,
-        )
+    )
