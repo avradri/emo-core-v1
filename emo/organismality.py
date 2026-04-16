@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -18,8 +16,8 @@ class OrganismalityResult:
     """
 
     global_oi: float
-    regional_oi: Dict[str, float]
-    metadata: Dict[str, str]
+    regional_oi: dict[str, float]
+    metadata: dict[str, str]
 
 
 def _safe_norm(series: pd.Series) -> pd.Series:
@@ -65,7 +63,7 @@ def compute_organismality_index(
         OI_region = treaties_norm * (1 - conflicts_norm)
 
     More sophisticated versions can include sanction effectiveness,
-    alliance stability, disinformation shocks, etc. 
+    alliance stability, disinformation shocks, etc.
     """
 
     df = (
@@ -80,9 +78,8 @@ def compute_organismality_index(
     oi_region = (t_norm * (1.0 - c_norm)).clip(0.0, 1.0)
     df["oi"] = oi_region
 
-    regional = {r: float(v) for r, v in zip(df[region_col], df["oi"])}
+    regional = {r: float(v) for r, v in zip(df[region_col], df["oi"], strict=False)}
 
-    # Global OI: mean of regional scores
     global_oi = float(oi_region.mean()) if len(oi_region) else 0.0
 
     return OrganismalityResult(
