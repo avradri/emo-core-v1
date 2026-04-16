@@ -34,7 +34,7 @@ def ensemble_from_dataframe(
     df: pd.DataFrame,
     parameter_cols: Sequence[str],
     score_col: str,
-    metadata_cols: Optional[Sequence[str]] = None,
+    metadata_cols: Sequence[str] | None = None,
 ) -> List[ClimateEnsembleMember]:
     """
     Build an ensemble from a tabular collection of runs.
@@ -80,7 +80,7 @@ def ensemble_from_dataframe(
 
 def prepare_ensemble_for_information_geometry(
     members: Iterable[ClimateEnsembleMember],
-    parameter_order: Optional[Sequence[str]] = None,
+    parameter_order: Sequence[str] | None = None,
 ) -> Tuple[np.ndarray, np.ndarray, List[str]]:
     """
     Convert an ensemble into arrays suitable for information-geometry tools.
