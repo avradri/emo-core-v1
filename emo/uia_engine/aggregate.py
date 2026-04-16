@@ -31,6 +31,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 
@@ -166,3 +167,80 @@ def compute_a_uia(
         Scalar informational curvature 𝓡[g_I] for the window.
     B_scalar:
         Scalar focusing bracket ℬ for the window.
+    C_series:
+        Coherence time series C(t).
+    S_series:
+        Entropy-like time series S(t).
+    I_series:
+        Information-like time series I(t).
+    M_E_scalar:
+        Semantic efficiency M_E; can be a scalar or a time series
+        aligned with C_series.index.
+    coeffs:
+        Optional UIACoefficients to use. If omitted, defaults are used.
+
+    Returns
+    -------
+    UIASnapshot
+        Dataclass containing the time series a_uia(t) and the coarse-
+        grained Ȧ_UIA, plus the underlying terms and coefficients.
+    """
+    if coeffs is None:
+        coeffs = default_uia_coefficients()
+
+    index = C_series.index
+    if not S_series.index.equals(index) or not I_series.index.equals(index):
+        raise ValueError(
+            "C, S, and I series must share the same index for compute_a_uia()."
+        )
+
+    M_E_series = _ensure_series_like(M_E_scalar, index=index)
+
+    dC = C_series.diff().fillna(0.0)
+    dS = S_series.diff().fillna(0.0)
+    dI = I_series.diff().fillna(0.0)
+
+    dC_term = coeffs.gamma * coeffs.tau_c * dC
+    dS_term = coeffs.delta * (dS / coeffs.S0)
+    dI_term = coeffs.epsilon * (dI / coeffs.I0)
+
+    R_term = coeffs.alpha * float(R_scalar)
+    B_term = coeffs.beta * (coeffs.ell**2) * float(B_scalar)
+    M_term = coeffs.eta * (M_E_series / coeffs.M0)
+
+    a_uia_values = (
+        R_term
+        + B_term
+        + dC_term.to_numpy()
+        + dS_term.to_numpy()
+        + dI_term.to_numpy()
+        + M_term.to_numpy()
+    )
+    a_uia_series = pd.Series(a_uia_values, index=index, name="a_uia")
+
+    A_uia_bar = float(np.nanmean(a_uia_series.to_numpy()))
+
+    terms = UIATerms(
+        R_scalar=float(R_scalar),
+        B_scalar=float(B_scalar),
+        C_series=C_series,
+        S_series=S_series,
+        I_series=I_series,
+        M_E_series=M_E_series,
+    )
+
+    return UIASnapshot(
+        a_uia_series=a_uia_series,
+        A_uia_bar=A_uia_bar,
+        terms=terms,
+        coeffs=coeffs,
+    )
+
+
+__all__ = [
+    "UIACoefficients",
+    "UIATerms",
+    "UIASnapshot",
+    "compute_a_uia",
+    "default_uia_coefficients",
+]
