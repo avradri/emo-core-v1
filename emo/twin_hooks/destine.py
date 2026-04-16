@@ -411,4 +411,80 @@ def build_emo_destine_overlay(
 
     - If the hazard time column is datetime-like and the EMO time column is
       numeric (e.g. a ``year`` field), hazards are grouped by calendar year and
-      joined
+      joined to the EMO metrics on that year.
+    - If both columns are datetime-like, they are normalised to dates and
+      joined on that date.
+    - Otherwise a direct merge between the two columns is performed.
+
+    Parameters
+    ----------
+    hazard_df:
+        Tabular hazard indicators derived from DestinE digital twins.
+    emo_metric_df:
+        Tabular EMO metrics (e.g. annual SMF, OI) with a coarse-grained time
+        column.
+    hazard_time_col:
+        Name of the time-like column in ``hazard_df`` (default:
+        ``"start_datetime"``).
+    emo_time_col:
+        Name of the time-like column in ``emo_metric_df`` (default: ``"time"``).
+    how:
+        Merge mode passed to :func:`pandas.merge` (default: ``"left"``).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Combined table with an ``overlay_time`` column plus the original
+        hazard and EMO metric fields.
+    """
+
+    def _is_datetime_like(s: pd.Series) -> bool:
+        return pd.api.types.is_datetime64_any_dtype(
+            s
+        ) or pd.api.types.is_datetime64tz_dtype(s)
+
+    def _coerce_datetime(s: pd.Series) -> pd.Series:
+        if _is_datetime_like(s):
+            return s
+        if pd.api.types.is_numeric_dtype(s):
+            return s
+        coerced = pd.to_datetime(s, errors="ignore", utc=False)
+        return coerced if _is_datetime_like(coerced) else s
+
+    hazards = hazard_df.copy()
+    metrics = emo_metric_df.copy()
+
+    h_time = _coerce_datetime(hazards[hazard_time_col])
+    e_time = _coerce_datetime(metrics[emo_time_col])
+
+    h_is_dt = _is_datetime_like(h_time)
+    e_is_dt = _is_datetime_like(e_time)
+
+    if h_is_dt and not e_is_dt:
+        hazards_key = h_time.dt.year
+        metrics_key = metrics[emo_time_col]
+    elif not h_is_dt and e_is_dt:
+        hazards_key = hazards[hazard_time_col]
+        metrics_key = e_time.dt.year
+    elif h_is_dt and e_is_dt:
+        hazards_key = h_time.dt.normalize()
+        metrics_key = e_time.dt.normalize()
+    else:
+        hazards_key = hazards[hazard_time_col]
+        metrics_key = metrics[emo_time_col]
+
+    overlay_col = "_emo_destine_overlay_time"
+    while overlay_col in hazards.columns or overlay_col in metrics.columns:
+        overlay_col = "_" + overlay_col
+
+    hazards[overlay_col] = hazards_key
+    metrics[overlay_col] = metrics_key
+
+    merged = hazards.merge(
+        metrics,
+        on=overlay_col,
+        how=how,
+        suffixes=("_hazard", "_emo"),
+    )
+    merged = merged.rename(columns={overlay_col: "overlay_time"})
+    return merged
