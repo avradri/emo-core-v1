@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from emo.harmonize.time_alignment import parse_iso_datetime
 from emo.models.delivery_trace import DeliveryTrace
@@ -9,7 +9,7 @@ from emo.models.policy_instrument import PolicyInstrument
 def warning_to_policy_lag_days(
     diagnostic: DiagnosticEvent,
     policy: PolicyInstrument,
-) -> Optional[int]:
+) -> int | None:
     diagnostic_time = parse_iso_datetime(diagnostic.issued_at)
     policy_time = parse_iso_datetime(policy.announced_at)
 
@@ -22,7 +22,7 @@ def warning_to_policy_lag_days(
 def warning_to_delivery_lag_days(
     diagnostic: DiagnosticEvent,
     delivery: DeliveryTrace,
-) -> Optional[int]:
+) -> int | None:
     diagnostic_time = parse_iso_datetime(diagnostic.issued_at)
     delivery_time = parse_iso_datetime(delivery.started_at)
 
