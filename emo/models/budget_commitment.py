@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -10,8 +11,8 @@ class BudgetCommitment:
     amount: float
     currency: str
     allocated_at: str
-    execution_window_start: Optional[str] = None
-    execution_window_end: Optional[str] = None
-    funder: Optional[str] = None
-    diagnostic_link: Optional[str] = None
-    instrument_link: Optional[str] = None
+    execution_window_start: str | None = None
+    execution_window_end: str | None = None
+    funder: str | None = None
+    diagnostic_link: str | None = None
+    instrument_link: str | None = None
