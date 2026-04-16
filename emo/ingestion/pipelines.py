@@ -160,3 +160,4 @@ def emo_yearly_tau(
 
     runs: list[PipelineRun] = []
     runs.append(run_forecast_skill_pipeline(skill_config, layout=layout))
+    return runs
