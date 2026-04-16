@@ -33,6 +33,8 @@ jobs:
           pytest -q
 
       - name: Type check (mypy)
+        env:
+          PYTHONPATH: .
         run: |
           mypy emo api orchestration
 
