@@ -10,12 +10,6 @@ import pandas as pd
 class SMFResult:
     """
     Self-Model Fidelity (SMF) result.
-
-    smf_score:
-        Global alignment between self-model trajectories and realised
-        trajectories, in [0, 1].
-    lag_days:
-        Lag (in days) at which alignment is maximal.
     """
 
     smf_score: float
@@ -52,17 +46,19 @@ def compute_smf(
 
     for lag in range(-max_lag, max_lag + 1):
         if lag < 0:
-            m = model_vals[-lag:]
-            r = real_vals[: len(m)]
+            model_slice = model_vals[-lag:]
+            real_slice = real_vals[: len(model_slice)]
         elif lag > 0:
-            m = model_vals[: n - lag]
-            r = real_vals[lag:]
+            model_slice = model_vals[: n - lag]
+            real_slice = real_vals[lag:]
         else:
-            m = model_vals
-            r = real_vals
-        if len(m) < 2:
+            model_slice = model_vals
+            real_slice = real_vals
+
+        if len(model_slice) < 2:
             continue
-        corr = float(np.corrcoef(m, r)[0, 1])
+
+        corr = float(np.corrcoef(model_slice, real_slice)[0, 1])
         if corr > best_corr:
             best_corr = corr
             best_lag = lag
