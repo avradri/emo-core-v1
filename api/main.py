@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import emo
 from fastapi import FastAPI
 
+import emo
 from api.routers import dac, metrics, uia
 
 DESCRIPTION = """
@@ -26,10 +26,10 @@ app.include_router(dac.router)
 
 
 @app.get("/health", tags=["meta"])
-async def health() -> dict:
+async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @app.get("/version", tags=["meta"])
-async def version() -> dict:
+async def version() -> dict[str, str]:
     return {"version": getattr(emo, "__version__", "0.1.0")}
