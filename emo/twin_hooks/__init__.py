@@ -8,20 +8,20 @@ from .climate_ensembles import (
 )
 from .destine import (  # type: ignore[attr-defined]
     DestineClient,
-    DestineConfig,
     DestineCollectionSummary,
+    DestineConfig,
     DestineItemSummary,
-    summarise_variable_statistics,
     build_emo_destine_overlay,
+    summarise_variable_statistics,
 )
 
 __all__ = [
     "DestineClient",
-    "DestineConfig",
     "DestineCollectionSummary",
+    "DestineConfig",
     "DestineItemSummary",
-    "summarise_variable_statistics",
     "build_emo_destine_overlay",
+    "summarise_variable_statistics",
     "ClimateEnsembleMember",
     "ensemble_from_dataframe",
     "prepare_ensemble_for_information_geometry",
