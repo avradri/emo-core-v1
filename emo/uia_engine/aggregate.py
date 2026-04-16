@@ -9,9 +9,6 @@ from .models import InterfaceState
 class UIAWeights:
     """
     Dimensionless weights for the UIA aggregation.
-
-    Defaults are intentionally simple and can be calibrated later against
-    empirical or theoretical constraints.
     """
 
     alpha: float = 1.0
@@ -28,19 +25,6 @@ def aggregate_uia(
 ) -> float:
     """
     Compute a coarse-grained UIA score from an InterfaceState.
-
-    The local UIA density is treated here as the weighted sum:
-
-        a_UIA =
-            alpha   * informational_curvature
-          + beta    * focusing_term
-          + gamma   * coherence_rate
-          + delta   * entropy_rate
-          + epsilon * information_rate
-          + eta     * semantic_efficiency
-
-    This function is deliberately lightweight and deterministic so it can be
-    reused across demos, tests, and orchestration code.
     """
     if weights is None:
         weights = UIAWeights()
