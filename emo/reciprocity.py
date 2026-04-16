@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
 
 import pandas as pd
 
@@ -22,7 +21,7 @@ class ReciprocityResult:
     R: float
     JB: float
     B: float
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
 
 
 def compute_reciprocity_fluxes(
@@ -35,8 +34,8 @@ def compute_reciprocity_fluxes(
     Parameters
     ----------
     buffering_proxy:
-        Time series representing exosomatic buffering (e.g., early-warning
-        coverage, protective infrastructure investments).
+        Time series representing exosomatic buffering
+        (e.g., early-warning coverage, protective infrastructure investments).
     selection_proxy:
         Time series representing environmental selection pressure
         (e.g., disaster losses, mortality).
@@ -48,29 +47,25 @@ def compute_reciprocity_fluxes(
     Notes
     -----
     In the full EMO / reciprocity program, R, J_B, and B relate to
-    coarse-grained balances between buffering and selection. Here we
-    approximate:
-
-        JB ~ mean(buffering_proxy)
-        B  ~ mean(selection_proxy)
-        R  ~ JB / max(B, eps)
-
-    This gives a single scalar R > 1 when buffering dominates,
-    R < 1 when selection dominates. 
+    environmental challenge, buffering, and behavioral balance. Here we keep
+    the first implementation intentionally lightweight and transparent.
     """
-    bp = buffering_proxy.dropna().astype(float)
-    sp = selection_proxy.dropna().astype(float)
-    if bp.empty or sp.empty:
-        return ReciprocityResult(1.0, 0.0, 0.0, {"definition": "empty"})
+    b_mean = float(buffering_proxy.mean())
+    s_mean = float(selection_proxy.mean())
 
-    JB = float(bp.mean())
-    B = float(sp.mean())
-    eps = 1e-9
-    R = JB / max(B, eps) if B > 0 else float("inf")
+    if s_mean == 0.0:
+        ratio = 0.0
+    else:
+        ratio = b_mean / s_mean
+
+    balance = b_mean - s_mean
 
     return ReciprocityResult(
-        R=R,
-        JB=JB,
-        B=B,
-        metadata={"definition": "mean_ratio_v1.0"},
+        R=ratio,
+        JB=b_mean,
+        B=balance,
+        metadata={
+            "buffering_name": getattr(buffering_proxy, "name", "buffering_proxy") or "buffering_proxy",
+            "selection_name": getattr(selection_proxy, "name", "selection_proxy") or "selection_proxy",
+        },
     )
