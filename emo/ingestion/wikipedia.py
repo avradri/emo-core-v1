@@ -1,129 +1,120 @@
-# emo/ingestion/wikipedia.py
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
-from typing import Iterable, List, Optional
 
 import pandas as pd
 import requests
 
-from .base import DataLakeLayout, PipelineRun, now_utc, save_dataframe
+from .base import DataLakeLayout, PipelineRun, ensure_parent, now_utc, save_dataframe
 
 LOG = logging.getLogger(__name__)
 
-PAGEVIEWS_BASE = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
-USER_AGENT = "EMO-Core/1.0 (research; contact@example.org)"
+WIKIPEDIA_PAGEVIEWS_BASE = (
+    "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
+)
 
 
 @dataclass
 class WikipediaArticleConfig:
     """
-    Configuration for fetching pageviews for a specific Wikipedia article.
-
-    Attributes
-    ----------
-    project:
-        Wiki project (e.g. 'en.wikipedia.org').
-    article:
-        Article title with spaces replaced by underscores (e.g. 'Climate_change').
-    access:
-        'all-access', 'desktop', or 'mobile-web'.
-    agent:
-        'user' (recommended), 'spider', or 'all-agents'.
-    granularity:
-        'daily' (most useful for EMO) or 'monthly'.
-    start:
-        Start date (YYYYMMDD) inclusive.
-    end:
-        End date (YYYYMMDD) inclusive.
+    Configuration for one Wikimedia pageviews pull.
     """
 
     project: str
     article: str
+    start: str
+    end: str
     access: str = "all-access"
     agent: str = "user"
-    granularity: str = "daily"
-    start: str = "20150101"
-    end: str = "20251231"
+    granularity: str = "monthly"
 
 
-def fetch_pageviews(cfg: WikipediaArticleConfig, timeout: int = 60) -> pd.DataFrame:
-    """
-    Fetch pageviews for a single article using the Wikimedia Pageviews API. :contentReference[oaicite:23]{index=23}
-    """
-    headers = {"User-Agent": USER_AGENT}
+def _fetch_pageviews(article: WikipediaArticleConfig) -> pd.DataFrame:
     url = (
-        f"{PAGEVIEWS_BASE}/{cfg.project}/{cfg.access}/{cfg.agent}"
-        f"/{cfg.article}/{cfg.granularity}/{cfg.start}/{cfg.end}"
+        f"{WIKIPEDIA_PAGEVIEWS_BASE}/"
+        f"{article.project}/{article.access}/{article.agent}/"
+        f"{article.article}/{article.granularity}/{article.start}/{article.end}"
     )
-    LOG.info("Fetching Wikipedia pageviews: %s", url)
-    resp = requests.get(url, headers=headers, timeout=timeout)
+
+    LOG.info("Fetching Wikipedia pageviews for %s", article.article)
+    resp = requests.get(url, timeout=60)
     resp.raise_for_status()
+
     payload = resp.json()
     items = payload.get("items", [])
-    dates: List[str] = []
-    views: List[int] = []
-    for item in items:
-        dates.append(item["timestamp"][:8])
-        views.append(int(item.get("views", 0)))
 
-    df = pd.DataFrame(
+    dates: list[str] = []
+    views: list[int] = []
+
+    for item in items:
+        dates.append(str(item["timestamp"])[:8])
+        views.append(int(item["views"]))
+
+    return pd.DataFrame(
         {
-            "date": pd.to_datetime(dates, format="%Y%m%d"),
+            "date": dates,
             "views": views,
-            "project": cfg.project,
-            "article": cfg.article,
-            "access": cfg.access,
-            "agent": cfg.agent,
+            "project": article.project,
+            "article": article.article,
+            "granularity": article.granularity,
         }
     )
-    df.sort_values("date", inplace=True)
-    return df
 
 
 def run_wikipedia_pageviews_pipeline(
     articles: Iterable[WikipediaArticleConfig],
-    layout: Optional[DataLakeLayout] = None,
+    layout: DataLakeLayout | None = None,
 ) -> PipelineRun:
     """
-    Fetch pageviews for a list of articles and write feature tables.
-
-    Intended cadence: **daily** (same as GDELT).
+    Fetch pageviews for one or more articles and persist them to the data lake.
     """
     layout = layout or DataLakeLayout.from_env()
     started = now_utc()
     records = 0
-    artifacts: List[str] = []
+    artifacts: list[str] = []
 
     try:
-        for cfg in articles:
-            df = fetch_pageviews(cfg)
-            records += len(df)
-            safe_article = cfg.article.replace("/", "_")
-            path = layout.subpath(
-                "feature", "wikipedia", f"pageviews_{safe_article}.parquet"
-            )
-            save_dataframe(df, path)
-            artifacts.append(str(path))
+        frames: list[pd.DataFrame] = []
+
+        for article in articles:
+            frame = _fetch_pageviews(article)
+            frames.append(frame)
+
+        combined = (
+            pd.concat(frames, ignore_index=True)
+            if frames
+            else pd.DataFrame(columns=["date", "views", "project", "article", "granularity"])
+        )
+        records = int(len(combined))
+
+        raw_path = layout.subpath("raw", "wikipedia", "pageviews_raw.csv")
+        clean_path = layout.subpath("clean", "wikipedia", "pageviews.csv")
+
+        ensure_parent(raw_path)
+        combined.to_csv(raw_path, index=False)
+        save_dataframe(combined, clean_path)
+
+        artifacts = [str(raw_path), str(clean_path)]
         status = "success"
         detail = None
-    except Exception as exc:  # pragma: no cover - defensive
-        LOG.exception("Wikipedia pageviews pipeline failed: %s", exc)
+    except Exception as exc:  # pragma: no cover
+        LOG.exception("Wikipedia pipeline failed: %s", exc)
         status = "failed"
         detail = str(exc)
 
     finished = now_utc()
     run = PipelineRun(
-        name="wikipedia_daily",
+        name="wikipedia_pageviews",
         started_at=started,
         finished_at=finished,
         status=status,
         records=records,
         detail=detail,
-        artifacts={"feature_paths": ",".join(artifacts)} if artifacts else None,
+        artifacts={"files": ",".join(artifacts)} if artifacts else None,
     )
+
     from .base import log_pipeline_run
 
     log_pipeline_run(run, layout=layout)
