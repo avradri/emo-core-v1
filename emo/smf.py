@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -21,7 +20,7 @@ class SMFResult:
 
     smf_score: float
     lag_days: int
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
 
 
 def compute_smf(
@@ -31,24 +30,10 @@ def compute_smf(
 ) -> SMFResult:
     """
     Compute a simple Self-Model Fidelity (SMF) score.
-
-    Parameters
-    ----------
-    model:
-        Time series representing the self-model output (e.g., a 1.5°C pathway).
-    realised:
-        Time series of realised values (e.g., actual emissions).
-    max_lag_days:
-        Max lag (both positive and negative) to consider.
-
-    Returns
-    -------
-    SMFResult
     """
     if model.empty or realised.empty:
         return SMFResult(0.0, 0, {"definition": "empty"})
 
-    # Align on common index
     df = (
         pd.concat({"model": model, "realised": realised}, axis=1)
         .dropna()
@@ -60,7 +45,6 @@ def compute_smf(
     model_vals = df["model"].to_numpy(dtype=float)
     real_vals = df["realised"].to_numpy(dtype=float)
 
-    # Map lag in days to integer steps assuming regular spacing
     n = len(df)
     max_lag = min(max_lag_days, n - 1)
     best_corr = -1.0
