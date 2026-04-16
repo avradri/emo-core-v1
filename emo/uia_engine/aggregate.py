@@ -155,7 +155,7 @@ def compute_a_uia(
     S_series: pd.Series,
     I_series: pd.Series,
     M_E_scalar: float | pd.Series,
-    coeffs: Optional[UIACoefficients] = None,
+    coeffs: UIACoefficients | None = None,
 ) -> UIASnapshot:
     """
     Compute a_UIA(t) and Ȧ_UIA over a given time window.
