@@ -1,4 +1,3 @@
-# emo/twin_hooks/__init__.py
 from __future__ import annotations
 
 from .climate_ensembles import (
@@ -6,7 +5,7 @@ from .climate_ensembles import (
     ensemble_from_dataframe,
     prepare_ensemble_for_information_geometry,
 )
-from .destine import (  # type: ignore[attr-defined]
+from .destine import (
     DestineClient,
     DestineCollectionSummary,
     DestineConfig,
