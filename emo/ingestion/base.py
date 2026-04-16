@@ -1,13 +1,11 @@
-# emo/ingestion/base.py
 from __future__ import annotations
 
 import json
 import logging
 import os
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Optional
 
 import pandas as pd
 
@@ -33,7 +31,7 @@ class DataLakeLayout:
     metric_dir: Path
 
     @classmethod
-    def from_env(cls) -> "DataLakeLayout":
+    def from_env(cls) -> DataLakeLayout:
         root_str = os.getenv("EMO_DATA_ROOT", "data")
         root = Path(root_str).resolve()
         instance = cls(
@@ -47,8 +45,8 @@ class DataLakeLayout:
         return instance
 
     def _ensure_dirs(self) -> None:
-        for p in (self.raw_dir, self.clean_dir, self.feature_dir, self.metric_dir):
-            p.mkdir(parents=True, exist_ok=True)
+        for path in (self.raw_dir, self.clean_dir, self.feature_dir, self.metric_dir):
+            path.mkdir(parents=True, exist_ok=True)
 
     def subpath(self, zone: str, *parts: str) -> Path:
         """
@@ -64,6 +62,7 @@ class DataLakeLayout:
             base = self.metric_dir
         else:
             raise ValueError(f"Unknown data-lake zone: {zone}")
+
         return base.joinpath(*parts)
 
 
@@ -79,20 +78,20 @@ class PipelineRun:
     name: str
     started_at: datetime
     finished_at: datetime
-    status: str  # "success", "partial", "failed"
-    records: Optional[int] = None
-    detail: Optional[str] = None
-    artifacts: Optional[Dict[str, str]] = None  # logical_name -> path
+    status: str
+    records: int | None = None
+    detail: str | None = None
+    artifacts: dict[str, str] | None = None
 
     @property
     def duration_seconds(self) -> float:
         return (self.finished_at - self.started_at).total_seconds()
 
-    def to_dict(self) -> Dict[str, object]:
-        d = asdict(self)
-        d["started_at"] = self.started_at.isoformat()
-        d["finished_at"] = self.finished_at.isoformat()
-        return d
+    def to_dict(self) -> dict[str, object]:
+        data = asdict(self)
+        data["started_at"] = self.started_at.isoformat()
+        data["finished_at"] = self.finished_at.isoformat()
+        return data
 
 
 def now_utc() -> datetime:
@@ -109,17 +108,22 @@ def save_dataframe(df: pd.DataFrame, path: Path) -> Path:
     """
     ensure_parent(path)
     suffix = path.suffix.lower()
+
     if suffix == ".csv":
         df.to_csv(path, index=False)
     elif suffix in (".parquet", ".pq"):
         df.to_parquet(path, index=False)
     else:
         raise ValueError(f"Unsupported extension for DataFrame save: {suffix}")
+
     LOG.info("Saved %d rows to %s", len(df), path)
     return path
 
 
-def log_pipeline_run(run: PipelineRun, layout: Optional[DataLakeLayout] = None) -> None:
+def log_pipeline_run(
+    run: PipelineRun,
+    layout: DataLakeLayout | None = None,
+) -> None:
     """
     Append a JSON line describing the pipeline run into metric/ops/ directory.
     """
@@ -127,8 +131,10 @@ def log_pipeline_run(run: PipelineRun, layout: Optional[DataLakeLayout] = None) 
     ops_dir = layout.metric_dir / "ops"
     ops_dir.mkdir(parents=True, exist_ok=True)
     log_path = ops_dir / f"pipeline_runs_{run.name}.jsonl"
-    with log_path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(run.to_dict()) + "\n")
+
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(run.to_dict()) + "\n")
+
     LOG.info(
         "Pipeline %s finished with status=%s, records=%s, duration=%.2fs",
         run.name,
