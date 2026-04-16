@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -9,8 +10,8 @@ class ValidationOutcome:
     domain: str
     measured_at: str
     outcome_metric: str
-    baseline: Optional[float] = None
-    observed_value: Optional[float] = None
-    counterfactual_method: Optional[str] = None
-    confidence: Optional[float] = None
-    notes: Optional[str] = None
+    baseline: float | None = None
+    observed_value: float | None = None
+    counterfactual_method: str | None = None
+    confidence: float | None = None
+    notes: str | None = None
