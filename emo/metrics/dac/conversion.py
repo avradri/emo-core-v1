@@ -1,10 +1,10 @@
-from typing import Optional
+from __future__ import annotations
 
 
 def alert_to_policy_conversion_rate(
     total_alerts: int,
     alerts_with_policy: int,
-) -> Optional[float]:
+) -> float | None:
     if total_alerts <= 0:
         return None
 
@@ -14,7 +14,7 @@ def alert_to_policy_conversion_rate(
 def alert_to_delivery_conversion_rate(
     total_alerts: int,
     alerts_with_delivery: int,
-) -> Optional[float]:
+) -> float | None:
     if total_alerts <= 0:
         return None
 
