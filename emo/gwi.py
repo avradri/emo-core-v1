@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -20,8 +19,8 @@ class GWIResult:
     """
 
     gwi_series: pd.Series
-    events: List[pd.Timestamp]
-    metadata: Dict[str, str]
+    events: list[pd.Timestamp]
+    metadata: dict[str, str]
 
 
 def compute_gwi(
@@ -51,7 +50,6 @@ def compute_gwi(
     z = (df - df.mean()) / (df.std(ddof=0) + 1e-9)
     composite = z.mean(axis=1)
 
-    # Squash into [0,1] via logistic
     gwi_values = 1.0 / (1.0 + np.exp(-composite.to_numpy()))
     gwi_series = pd.Series(gwi_values, index=df.index, name="gwi")
 
