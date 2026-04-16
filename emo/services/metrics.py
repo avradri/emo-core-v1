@@ -67,7 +67,7 @@ class UIASummary:
         cls,
         snapshot: UIASnapshot,
         interface_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Dict[str, Any] | None = None,
     ) -> "UIASummary":
         """
         Build a :class:`UIASummary` from a :class:`UIASnapshot`.
@@ -113,7 +113,7 @@ class MetricEngine:
     long as :class:`MetricEngine`'s interface remains stable.
     """
 
-    def __init__(self, uia_coeffs: Optional[UIACoefficients] = None) -> None:
+    def __init__(self, uia_coeffs: UIACoefficients | None = None) -> None:
         # Default to the canonical coefficient set if none is provided.
         self._uia_coeffs = uia_coeffs or UIACoefficients()
 
