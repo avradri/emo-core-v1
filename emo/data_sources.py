@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, Optional
+from enum import StrEnum
+from typing import Any
 
 import httpx
 
 from .config import get_settings
 
 
-class InterfaceClass(str, Enum):
+class InterfaceClass(StrEnum):
     EARTH_SYSTEM = "earth_system"
     MEDIA = "media"
     KNOWLEDGE_GRAPH = "knowledge_graph"
@@ -26,7 +26,7 @@ class Interface:
     Minimal representation of an interface Σ_i in the Interface Registry.
 
     In v1.0 we keep this in-memory; a later version can persist it to Postgres
-    following the schema in the EMO architecture document. :contentReference[oaicite:23]{index=23}
+    following the schema in the EMO architecture document.
     """
 
     id: str
@@ -34,8 +34,8 @@ class Interface:
     klass: InterfaceClass
     provider: str
     description: str
-    base_url: Optional[str] = None
-    uia_roles: Optional[Dict[str, bool]] = None
+    base_url: str | None = None
+    uia_roles: dict[str, bool] | None = None
 
 
 class InterfaceRegistry:
@@ -47,7 +47,7 @@ class InterfaceRegistry:
     """
 
     def __init__(self) -> None:
-        self._interfaces: Dict[str, Interface] = {}
+        self._interfaces: dict[str, Interface] = {}
         self._bootstrap_defaults()
 
     def _bootstrap_defaults(self) -> None:
@@ -90,17 +90,14 @@ class InterfaceRegistry:
     def register(self, interface: Interface) -> None:
         self._interfaces[interface.id] = interface
 
-    def list(self) -> Dict[str, Interface]:
+    def list(self) -> dict[str, Interface]:
         return dict(self._interfaces)
 
-    def get(self, interface_id: str) -> Optional[Interface]:
+    def get(self, interface_id: str) -> Interface | None:
         return self._interfaces.get(interface_id)
 
 
-# --- Tiny helper clients ----------------------------------------------------
-
-
-async def fetch_json(url: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+async def fetch_json(url: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Lightweight async JSON fetcher.
 
