@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 import requests
@@ -41,11 +42,11 @@ class DestineConfig:
 
     hda_base_url: str = DESTINE_HDA_DEFAULT
     stac_base_url: str = DESTINE_STAC_DEFAULT
-    token: Optional[str] = None
+    token: str | None = None
     timeout: int = 30
 
     @classmethod
-    def from_env(cls) -> "DestineConfig":
+    def from_env(cls) -> DestineConfig:
         return cls(
             hda_base_url=os.getenv("DESTINE_HDA_BASE_URL", DESTINE_HDA_DEFAULT),
             stac_base_url=os.getenv("DESTINE_STAC_BASE_URL", DESTINE_STAC_DEFAULT),
@@ -61,10 +62,10 @@ class DestineCollectionSummary:
     """
 
     id: str
-    title: Optional[str]
-    description: Optional[str]
-    keywords: List[str]
-    href: Optional[str]
+    title: str | None
+    description: str | None
+    keywords: list[str]
+    href: str | None
 
 
 @dataclass
@@ -75,10 +76,10 @@ class DestineItemSummary:
 
     id: str
     collection_id: str
-    start_datetime: Optional[datetime]
-    end_datetime: Optional[datetime]
-    geometry: Optional[Dict[str, Any]]
-    assets: Dict[str, str]  # asset key -> href
+    start_datetime: datetime | None
+    end_datetime: datetime | None
+    geometry: dict[str, Any] | None
+    assets: dict[str, str]  # asset key -> href
 
 
 class DestineClient:
@@ -94,8 +95,8 @@ class DestineClient:
 
     def __init__(
         self,
-        config: Optional[DestineConfig] = None,
-        session: Optional[requests.Session] = None,
+        config: DestineConfig | None = None,
+        session: requests.Session | None = None,
     ) -> None:
         self.config = config or DestineConfig.from_env()
         self.session = session or requests.Session()
@@ -112,7 +113,7 @@ class DestineClient:
         base = self.config.stac_base_url.rstrip("/")
         return f"{base}/{path.lstrip('/')}"
 
-    def list_collections(self) -> List[DestineCollectionSummary]:
+    def list_collections(self) -> list[DestineCollectionSummary]:
         """
         List all STAC collections visible through HDA and return a simplified summary.
         """
@@ -122,7 +123,7 @@ class DestineClient:
         resp.raise_for_status()
         payload = resp.json()
 
-        collections: List[DestineCollectionSummary] = []
+        collections: list[DestineCollectionSummary] = []
         for raw in payload.get("collections", []):
             keywords = raw.get("keywords") or []
             href = None
@@ -145,11 +146,11 @@ class DestineClient:
     def search_items(
         self,
         collection_id: str,
-        datetime_range: Optional[Tuple[datetime, datetime]] = None,
-        bbox: Optional[Tuple[float, float, float, float]] = None,
+        datetime_range: tuple[datetime, datetime] | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
         limit: int = 50,
-        query: Optional[Dict[str, Any]] = None,
-    ) -> List[DestineItemSummary]:
+        query: dict[str, Any] | None = None,
+    ) -> list[DestineItemSummary]:
         """
         Generic STAC search.
 
@@ -167,7 +168,7 @@ class DestineClient:
             Optional STAC "query" structure for advanced filtering.
         """
         url = self._stac_url("search")
-        body: Dict[str, Any] = {"collections": [collection_id], "limit": limit}
+        body: dict[str, Any] = {"collections": [collection_id], "limit": limit}
 
         if datetime_range is not None:
             start, end = datetime_range
@@ -184,7 +185,7 @@ class DestineClient:
         resp.raise_for_status()
         payload = resp.json()
 
-        items: List[DestineItemSummary] = []
+        items: list[DestineItemSummary] = []
         for feat in payload.get("features", []):
             props = feat.get("properties", {}) or {}
             start_dt = _parse_rfc3339(
@@ -195,7 +196,7 @@ class DestineClient:
             )
 
             raw_assets = feat.get("assets", {}) or {}
-            assets: Dict[str, str] = {}
+            assets: dict[str, str] = {}
             for key, value in raw_assets.items():
                 if not isinstance(value, dict):
                     continue
@@ -221,10 +222,10 @@ class DestineClient:
     # ------------------------------------------------------------------
     def fetch_climate_dt_items(
         self,
-        datetime_range: Optional[Tuple[datetime, datetime]] = None,
-        bbox: Optional[Tuple[float, float, float, float]] = None,
+        datetime_range: tuple[datetime, datetime] | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
         limit: int = 50,
-    ) -> List[DestineItemSummary]:
+    ) -> list[DestineItemSummary]:
         """
         Convenience wrapper for Climate Change Adaptation Digital Twin STAC items.
         """
@@ -237,10 +238,10 @@ class DestineClient:
 
     def fetch_extremes_dt_items(
         self,
-        datetime_range: Optional[Tuple[datetime, datetime]] = None,
-        bbox: Optional[Tuple[float, float, float, float]] = None,
+        datetime_range: tuple[datetime, datetime] | None = None,
+        bbox: tuple[float, float, float, float] | None = None,
         limit: int = 50,
-    ) -> List[DestineItemSummary]:
+    ) -> list[DestineItemSummary]:
         """
         Convenience wrapper for Extremes Digital Twin STAC items.
         """
@@ -284,7 +285,7 @@ class DestineClient:
         return target_path
 
 
-def _parse_rfc3339(value: Any) -> Optional[datetime]:
+def _parse_rfc3339(value: Any) -> datetime | None:
     """
     Parse a RFC3339 datetime string, returning None if parsing fails.
     """
@@ -300,7 +301,7 @@ def destine_items_to_dataframe(items: Iterable[DestineItemSummary]) -> pd.DataFr
     """
     Convert a list of DestineItemSummary objects into a tabular dataframe.
     """
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for item in items:
         rows.append(
             {
@@ -317,8 +318,8 @@ def destine_items_to_dataframe(items: Iterable[DestineItemSummary]) -> pd.DataFr
 
 def summarise_variable_statistics(
     ds: xr.Dataset | xr.DataArray,
-    variables: Optional[Iterable[str]] = None,
-    dims: Optional[Iterable[str]] = None,
+    variables: Iterable[str] | None = None,
+    dims: Iterable[str] | None = None,
 ) -> pd.DataFrame:
     """
     Compute simple summary statistics for variables in a DestinE dataset.
@@ -356,7 +357,7 @@ def summarise_variable_statistics(
     else:
         var_names = list(variables)
 
-    dims_list: Optional[list[str]] = list(dims) if dims is not None else None
+    dims_list: list[str] | None = list(dims) if dims is not None else None
     rows: list[dict[str, Any]] = []
 
     for name in var_names:
@@ -410,80 +411,4 @@ def build_emo_destine_overlay(
 
     - If the hazard time column is datetime-like and the EMO time column is
       numeric (e.g. a ``year`` field), hazards are grouped by calendar year and
-      joined to the EMO metrics on that year.
-    - If both columns are datetime-like, they are normalised to dates and
-      joined on that date.
-    - Otherwise a direct merge between the two columns is performed.
-
-    Parameters
-    ----------
-    hazard_df:
-        Tabular hazard indicators derived from DestinE digital twins.
-    emo_metric_df:
-        Tabular EMO metrics (e.g. annual SMF, OI) with a coarse-grained time
-        column.
-    hazard_time_col:
-        Name of the time-like column in ``hazard_df`` (default:
-        ``"start_datetime"``).
-    emo_time_col:
-        Name of the time-like column in ``emo_metric_df`` (default: ``"time"``).
-    how:
-        Merge mode passed to :func:`pandas.merge` (default: ``"left"``).
-
-    Returns
-    -------
-    pandas.DataFrame
-        Combined table with an ``overlay_time`` column plus the original
-        hazard and EMO metric fields.
-    """
-
-    def _is_datetime_like(s: pd.Series) -> bool:
-        return pd.api.types.is_datetime64_any_dtype(
-            s
-        ) or pd.api.types.is_datetime64tz_dtype(s)
-
-    def _coerce_datetime(s: pd.Series) -> pd.Series:
-        if _is_datetime_like(s):
-            return s
-        if pd.api.types.is_numeric_dtype(s):
-            return s
-        coerced = pd.to_datetime(s, errors="ignore", utc=False)
-        return coerced if _is_datetime_like(coerced) else s
-
-    hazards = hazard_df.copy()
-    metrics = emo_metric_df.copy()
-
-    h_time = _coerce_datetime(hazards[hazard_time_col])
-    e_time = _coerce_datetime(metrics[emo_time_col])
-
-    h_is_dt = _is_datetime_like(h_time)
-    e_is_dt = _is_datetime_like(e_time)
-
-    if h_is_dt and not e_is_dt:
-        hazards_key = h_time.dt.year
-        metrics_key = metrics[emo_time_col]
-    elif not h_is_dt and e_is_dt:
-        hazards_key = hazards[hazard_time_col]
-        metrics_key = e_time.dt.year
-    elif h_is_dt and e_is_dt:
-        hazards_key = h_time.dt.normalize()
-        metrics_key = e_time.dt.normalize()
-    else:
-        hazards_key = hazards[hazard_time_col]
-        metrics_key = metrics[emo_time_col]
-
-    overlay_col = "_emo_destine_overlay_time"
-    while overlay_col in hazards.columns or overlay_col in metrics.columns:
-        overlay_col = "_" + overlay_col
-
-    hazards[overlay_col] = hazards_key
-    metrics[overlay_col] = metrics_key
-
-    merged = hazards.merge(
-        metrics,
-        on=overlay_col,
-        how=how,
-        suffixes=("_hazard", "_emo"),
-    )
-    merged = merged.rename(columns={overlay_col: "overlay_time"})
-    return merged
+      joined
