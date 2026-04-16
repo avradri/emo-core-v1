@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Optional
 
 
-def parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
+def parse_iso_datetime(value: str | None) -> datetime | None:
     if value is None:
         return None
 
