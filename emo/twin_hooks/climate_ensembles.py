@@ -57,14 +57,13 @@ def prepare_ensemble_for_information_geometry(
     members_list = list(members)
     if not members_list:
         raise ValueError(
-            "prepare_ensemble_for_information_geometry() "
-            "received an empty ensemble."
+            "prepare_ensemble_for_information_geometry() received an empty ensemble."
         )
 
     if parameter_order is None:
         keys: list[str] = []
-        for m in members_list:
-            keys.extend(list(m.parameters.keys()))
+        for member in members_list:
+            keys.extend(list(member.parameters.keys()))
         parameter_order = sorted(set(keys))
 
     n_members = len(members_list)
@@ -73,11 +72,11 @@ def prepare_ensemble_for_information_geometry(
     theta = np.full((n_members, n_params), np.nan, dtype=float)
     scores = np.zeros(n_members, dtype=float)
 
-    for i, m in enumerate(members_list):
+    for i, member in enumerate(members_list):
         for j, name in enumerate(parameter_order):
-            if name in m.parameters:
-                theta[i, j] = float(m.parameters[name])
-        scores[i] = float(m.score)
+            if name in member.parameters:
+                theta[i, j] = float(member.parameters[name])
+        scores[i] = float(member.score)
 
     return theta, scores, list(parameter_order)
 
@@ -86,4 +85,4 @@ __all__ = [
     "ClimateEnsembleMember",
     "ensemble_from_dataframe",
     "prepare_ensemble_for_information_geometry",
-        ]
+]
