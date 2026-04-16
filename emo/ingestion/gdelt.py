@@ -1,138 +1,139 @@
-# emo/ingestion/gdelt.py
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
-from typing import Iterable, List, Optional
 
 import pandas as pd
 
-from .base import DataLakeLayout, PipelineRun, now_utc, save_dataframe
+from .base import DataLakeLayout, PipelineRun, ensure_parent, now_utc, save_dataframe
 
 LOG = logging.getLogger(__name__)
 
 try:
-    from gdeltdoc import GdeltDoc, Filters  # type: ignore[import]
-except ImportError:  # pragma: no cover - optional dependency
-    GdeltDoc = None
+    from gdeltdoc import Filters, GdeltDoc  # type: ignore[import]
+except ImportError:  # pragma: no cover
     Filters = None
+    GdeltDoc = None
 
 
 @dataclass
 class GDELTTopicConfig:
     """
-    Configuration for a GDELT DOC 2.0 topic timeline.
-
-    Attributes
-    ----------
-    keyword:
-        Query string (e.g. "climate change").
-    label:
-        Short label used in filenames (e.g. "climate_change").
-    timespan:
-        GDELT timespan string (e.g. "3m", "6m", "12m").
+    Configuration for a GDELT topic timeline pull.
     """
 
     keyword: str
+    start_date: str
+    end_date: str
     label: str
-    timespan: str = "3m"
 
 
-def _require_gdelt_client() -> GdeltDoc:
+def _fetch_gdelt_timeline(cfg: GDELTTopicConfig) -> pd.DataFrame:
+    """
+    Fetch a timeline for a single keyword/topic from GDELT Doc 2.0.
+
+    Returns a DataFrame with at least:
+    - date
+    - value
+    - keyword
+    - label
+    """
     if GdeltDoc is None or Filters is None:
         raise ImportError(
-            "gdeltdoc is not installed. Install it with `pip install gdeltdoc` "
-            "or remove GDELT ingestion from your pipelines."
+            "gdeltdoc is not installed. Install optional ingestion dependencies "
+            "to use the GDELT pipeline."
         )
-    return GdeltDoc()
 
-
-def fetch_timeline_for_topic(cfg: GDELTTopicConfig) -> pd.DataFrame:
-    """
-    Fetch a TimelineVolRaw timeline for a topic using gdeltdoc.
-
-    We rely on the official-style client `gdeltdoc`, which wraps the
-    GDELT DOC 2.0 API `timelinevol` / `timelinevolraw` modes in a DataFrame. :contentReference[oaicite:21]{index=21}
-    """
-    gd = _require_gdelt_client()
-    f = Filters(
+    gdelt = GdeltDoc()
+    filters = Filters(
         keyword=cfg.keyword,
-        timespan=cfg.timespan,
+        start_date=cfg.start_date,
+        end_date=cfg.end_date,
     )
-    # 'timelinevolraw' returns absolute article counts over time
-    timeline = gd.timeline_search("timelinevolraw", f)
-    if not isinstance(timeline, pd.DataFrame):
-        raise RuntimeError("gdeltdoc.timeline_search did not return a DataFrame")
-    # Normalise column names: 'datetime' and 'value'
-    cols = {c.lower(): c for c in timeline.columns}
-    # Try to sniff time / count columns
-    if "datetime" in cols:
-        time_col = cols["datetime"]
-    elif "date" in cols:
-        time_col = cols["date"]
-    else:
-        time_col = timeline.columns[0]
-    if "value" in cols:
-        val_col = cols["value"]
-    elif "count" in cols:
-        val_col = cols["count"]
-    else:
-        val_col = timeline.columns[1]
 
-    df = pd.DataFrame(
-        {
-            "datetime": pd.to_datetime(timeline[time_col]),
-            "count": timeline[val_col].astype("int64"),
-            "topic_label": cfg.label,
-            "keyword": cfg.keyword,
-        }
-    )
-    df.sort_values("datetime", inplace=True)
-    return df
+    timeline = gdelt.timeline_search("timelinevol", filters=filters)
+    df = pd.DataFrame(timeline)
+
+    if df.empty:
+        return pd.DataFrame(columns=["date", "value", "keyword", "label"])
+
+    if "date" not in df.columns:
+        first_col = df.columns[0]
+        df = df.rename(columns={first_col: "date"})
+
+    value_col = None
+    for candidate in ("value", "count", "Volume Intensity", "norm"):
+        if candidate in df.columns:
+            value_col = candidate
+            break
+
+    if value_col is None:
+        numeric_cols = df.select_dtypes(include="number").columns.tolist()
+        if not numeric_cols:
+            raise ValueError("Could not infer timeline value column from GDELT output.")
+        value_col = numeric_cols[0]
+
+    out = df[["date", value_col]].copy()
+    out = out.rename(columns={value_col: "value"})
+    out["keyword"] = cfg.keyword
+    out["label"] = cfg.label
+    return out
 
 
 def run_gdelt_timeline_pipeline(
     topics: Iterable[GDELTTopicConfig],
-    layout: Optional[DataLakeLayout] = None,
+    layout: DataLakeLayout | None = None,
 ) -> PipelineRun:
     """
-    Fetch GDELT DOC 2.0 timelines for a list of topics and save them as
-    feature tables.
-
-    Intended cadence: **daily** (for GWI and daily attention maps).
+    Fetch GDELT timelines for one or more topics and persist them to the data lake.
     """
     layout = layout or DataLakeLayout.from_env()
     started = now_utc()
     records = 0
-    artifacts: List[str] = []
+    artifacts: list[str] = []
 
     try:
-        for cfg in topics:
-            df = fetch_timeline_for_topic(cfg)
-            records += len(df)
-            path = layout.subpath(
-                "feature", "gdelt", f"timeline_{cfg.label}.parquet"
-            )
-            save_dataframe(df, path)
-            artifacts.append(str(path))
+        frames: list[pd.DataFrame] = []
+
+        for topic in topics:
+            LOG.info("Fetching GDELT timeline for %s", topic.label)
+            frame = _fetch_gdelt_timeline(topic)
+            frames.append(frame)
+
+        combined = (
+            pd.concat(frames, ignore_index=True)
+            if frames
+            else pd.DataFrame(columns=["date", "value", "keyword", "label"])
+        )
+        records = int(len(combined))
+
+        raw_path = layout.subpath("raw", "gdelt", "gdelt_timeline_raw.csv")
+        clean_path = layout.subpath("clean", "gdelt", "gdelt_timeline.csv")
+
+        ensure_parent(raw_path)
+        combined.to_csv(raw_path, index=False)
+        save_dataframe(combined, clean_path)
+
+        artifacts = [str(raw_path), str(clean_path)]
         status = "success"
         detail = None
-    except Exception as exc:  # pragma: no cover - defensive
-        LOG.exception("GDELT pipeline failed: %s", exc)
+    except Exception as exc:  # pragma: no cover
+        LOG.exception("GDELT timeline pipeline failed: %s", exc)
         status = "failed"
         detail = str(exc)
 
     finished = now_utc()
     run = PipelineRun(
-        name="gdelt_daily",
+        name="gdelt_timeline",
         started_at=started,
         finished_at=finished,
         status=status,
         records=records,
         detail=detail,
-        artifacts={"feature_paths": ",".join(artifacts)} if artifacts else None,
+        artifacts={"files": ",".join(artifacts)} if artifacts else None,
     )
+
     from .base import log_pipeline_run
 
     log_pipeline_run(run, layout=layout)
