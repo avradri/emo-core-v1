@@ -40,7 +40,7 @@ def _build_filter(cfg: OpenAlexConceptConfig, year: int) -> str:
 
 
 def _fetch_openalex_count(cfg: OpenAlexConceptConfig, year: int) -> int:
-    params = {
+    params: dict[str, str | int] = {
         "filter": _build_filter(cfg, year),
         "per-page": 1,
         "mailto": "contact@example.org",
