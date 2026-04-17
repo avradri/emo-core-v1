@@ -1,8 +1,18 @@
-# EMO‑Core v1.0 — Emergent Mind Observatory
+# EMO-Core — Emergent Mind Observatory (EMO)
 
 > A continuous cognitive layer for the planet, built on the Emergent Mind Observatory (EMO) and the Universal Interface Action (UIA). 
 
-EMO‑Core v1.0 is the backend engine for the **Emergent Mind Observatory (EMO)**:
+EMO (Emergent Mind Observatory) is a live observatory for measuring whether humanity is becoming more organismal under planetary-scale conditions.
+
+The repository now includes three tightly linked layers:
+
+- **EMO** as the observatory layer for collective cognition and species-level coordination
+- **UIA** as the formal ledger of interface alignment and organismality structure
+- **DAC** as the dynamic bridge from diagnosis to organized response
+
+This means EMO no longer functions only as a cognitive observatory. It now also measures whether validated diagnosis is translated into action through lag, conversion, persistence, contradiction, and alignment metrics.
+
+- **Emergent Mind Observatory (EMO)**:
 
 - Ingests multi‑stream global data (planetary boundaries, climate models, digital twins, early‑warning systems, media, knowledge graphs, trade and finance). :contentReference[oaicite:9]{index=9}  
 - Computes species‑level cognition metrics:
