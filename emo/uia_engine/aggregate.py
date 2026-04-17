@@ -19,10 +19,8 @@ class UIACoefficients:
     delta: float = 1.0
     epsilon: float = 1.0
     eta: float = 1.0
-
     ell: float = 1.0
     tau_c: float = 1.0
-
     S0: float = 1.0
     I0: float = 1.0
     M0: float = 1.0
@@ -76,7 +74,7 @@ def compute_a_uia(
             "C, S, and I series must share the same index for compute_a_uia()."
         )
 
-    M_E_series = _ensure_series_like(M_E_scalar, index=index)
+    m_e_series = _ensure_series_like(M_E_scalar, index=index)
 
     dC = C_series.diff().fillna(0.0)
     dS = S_series.diff().fillna(0.0)
@@ -88,7 +86,7 @@ def compute_a_uia(
 
     R_term = coeffs.alpha * float(R_scalar)
     B_term = coeffs.beta * (coeffs.ell**2) * float(B_scalar)
-    M_term = coeffs.eta * (M_E_series / coeffs.M0)
+    M_term = coeffs.eta * (m_e_series / coeffs.M0)
 
     a_uia_values = (
         R_term
@@ -108,7 +106,7 @@ def compute_a_uia(
         C_series=C_series,
         S_series=S_series,
         I_series=I_series,
-        M_E_series=M_E_series,
+        M_E_series=m_e_series,
     )
 
     return UIASnapshot(
