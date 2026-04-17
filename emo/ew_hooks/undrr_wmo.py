@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import httpx
 
@@ -26,7 +25,7 @@ class EarlyWarningCoverage:
 
     region: str
     coverage: float
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
 
 
 class EarlyWarningClient:
@@ -41,16 +40,16 @@ class EarlyWarningClient:
     `emo.config.Settings.undrr_base`.
     """
 
-    def __init__(self, base_url: Optional[str] = None, timeout: float = 10.0) -> None:
+    def __init__(self, base_url: str | None = None, timeout: float = 10.0) -> None:
         settings = get_settings()
         self.base_url = base_url or settings.undrr_base
         self._timeout = timeout
 
     async def fetch_coverage(
         self,
-        client: Optional[httpx.AsyncClient] = None,
+        client: httpx.AsyncClient | None = None,
         path: str = "/emo/coverage",
-    ) -> List[EarlyWarningCoverage]:
+    ) -> list[EarlyWarningCoverage]:
         """
         Fetch a best-effort coverage distribution from a remote endpoint.
 
@@ -81,15 +80,11 @@ class EarlyWarningClient:
             if close_client:
                 await client.aclose()
 
-        coverages: List[EarlyWarningCoverage] = []
+        coverages: list[EarlyWarningCoverage] = []
         for item in payload:
             region = str(item.get("region", "Unknown"))
             coverage = float(item.get("coverage", 0.0))
-            meta = {
-                k: str(v)
-                for k, v in item.items()
-                if k not in {"region", "coverage"}
-            }
+            meta = {k: str(v) for k, v in item.items() if k not in {"region", "coverage"}}
             coverages.append(
                 EarlyWarningCoverage(
                     region=region,
@@ -100,7 +95,7 @@ class EarlyWarningClient:
 
         return coverages
 
-    async def fetch_demo_coverage(self) -> List[EarlyWarningCoverage]:
+    async def fetch_demo_coverage(self) -> list[EarlyWarningCoverage]:
         """
         Return a tiny synthetic coverage distribution for local demos.
 

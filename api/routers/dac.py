@@ -47,10 +47,16 @@ def get_metrics_summary(
 
 
 @router.get("/modes/current", response_model=DACModeResponse)
-def get_current_mode():
-    return get_current_dac_mode()
+def get_current_mode(
+    domain: str | None = None,
+    jurisdiction: str | None = None,
+):
+    return get_current_dac_mode(domain=domain, jurisdiction=jurisdiction)
 
 
 @router.get("/report/snapshot", response_model=DACSnapshotResponse)
-def get_snapshot():
-    return get_dac_snapshot()
+def get_snapshot(
+    domain: str | None = None,
+    jurisdiction: str | None = None,
+):
+    return get_dac_snapshot(domain=domain, jurisdiction=jurisdiction)

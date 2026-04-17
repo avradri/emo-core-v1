@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -8,10 +9,10 @@ class PolicyInstrument:
     instrument_type: str
     jurisdiction: str
     announced_at: str
-    effective_at: Optional[str] = None
-    expires_at: Optional[str] = None
-    target_link: Optional[str] = None
-    diagnostic_link: Optional[str] = None
-    strength_score: Optional[float] = None
-    binding_score: Optional[float] = None
-    budget_linked: Optional[bool] = None
+    effective_at: str | None = None
+    expires_at: str | None = None
+    target_link: str | None = None
+    diagnostic_link: str | None = None
+    strength_score: float | None = None
+    binding_score: float | None = None
+    budget_linked: bool | None = None

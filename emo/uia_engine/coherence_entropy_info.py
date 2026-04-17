@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,8 +15,8 @@ class CoherenceEntropyInfo:
 
     C: pd.Series
     S: pd.Series
-    I: pd.Series
-    metadata: dict
+    information: pd.Series
+    metadata: dict[str, Any]
 
 
 def coherence_from_gwi(gwi_series: pd.Series, smoothing_window: int = 7) -> pd.Series:
@@ -68,13 +69,13 @@ def bundle_coherence_entropy_info(
     boundary_indicators: pd.DataFrame,
     skill_series: pd.Series,
 ) -> CoherenceEntropyInfo:
-    C = coherence_from_gwi(gwi_series)
-    S = effective_entropy(boundary_indicators)
-    I = information_rate_from_skill(skill_series)
+    coherence = coherence_from_gwi(gwi_series)
+    entropy = effective_entropy(boundary_indicators)
+    information = information_rate_from_skill(skill_series)
 
     return CoherenceEntropyInfo(
-        C=C,
-        S=S,
-        I=I,
+        C=coherence,
+        S=entropy,
+        information=information,
         metadata={"definition": "emo_uia_bundle_v1.0"},
     )

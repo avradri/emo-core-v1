@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -11,17 +10,11 @@ import pandas as pd
 class SMFResult:
     """
     Self-Model Fidelity (SMF) result.
-
-    smf_score:
-        Global alignment between self-model trajectories and realised
-        trajectories, in [0, 1].
-    lag_days:
-        Lag (in days) at which alignment is maximal.
     """
 
     smf_score: float
     lag_days: int
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
 
 
 def compute_smf(
@@ -31,24 +24,10 @@ def compute_smf(
 ) -> SMFResult:
     """
     Compute a simple Self-Model Fidelity (SMF) score.
-
-    Parameters
-    ----------
-    model:
-        Time series representing the self-model output (e.g., a 1.5°C pathway).
-    realised:
-        Time series of realised values (e.g., actual emissions).
-    max_lag_days:
-        Max lag (both positive and negative) to consider.
-
-    Returns
-    -------
-    SMFResult
     """
     if model.empty or realised.empty:
         return SMFResult(0.0, 0, {"definition": "empty"})
 
-    # Align on common index
     df = (
         pd.concat({"model": model, "realised": realised}, axis=1)
         .dropna()
@@ -60,7 +39,6 @@ def compute_smf(
     model_vals = df["model"].to_numpy(dtype=float)
     real_vals = df["realised"].to_numpy(dtype=float)
 
-    # Map lag in days to integer steps assuming regular spacing
     n = len(df)
     max_lag = min(max_lag_days, n - 1)
     best_corr = -1.0
@@ -68,17 +46,19 @@ def compute_smf(
 
     for lag in range(-max_lag, max_lag + 1):
         if lag < 0:
-            m = model_vals[-lag:]
-            r = real_vals[: len(m)]
+            model_slice = model_vals[-lag:]
+            real_slice = real_vals[: len(model_slice)]
         elif lag > 0:
-            m = model_vals[: n - lag]
-            r = real_vals[lag:]
+            model_slice = model_vals[: n - lag]
+            real_slice = real_vals[lag:]
         else:
-            m = model_vals
-            r = real_vals
-        if len(m) < 2:
+            model_slice = model_vals
+            real_slice = real_vals
+
+        if len(model_slice) < 2:
             continue
-        corr = float(np.corrcoef(m, r)[0, 1])
+
+        corr = float(np.corrcoef(model_slice, real_slice)[0, 1])
         if corr > best_corr:
             best_corr = corr
             best_lag = lag
@@ -89,4 +69,4 @@ def compute_smf(
         smf_score=smf_score,
         lag_days=best_lag,
         metadata={"definition": "max_lagged_corr_v1.0"},
-    )
+        )

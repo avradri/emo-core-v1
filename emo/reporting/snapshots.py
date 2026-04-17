@@ -1,12 +1,14 @@
-from typing import Any, Dict
+from __future__ import annotations
+
+from typing import Any
 
 
 def build_dac_snapshot(
     domain: str,
     jurisdiction: str,
-    metrics: Dict[str, Any],
+    metrics: dict[str, Any],
     mode: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "domain": domain,
         "jurisdiction": jurisdiction,

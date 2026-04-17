@@ -1,4 +1,3 @@
-# tests/test_metrics_service.py
 from __future__ import annotations
 
 import pandas as pd
@@ -32,7 +31,6 @@ def test_metric_engine_organismality_from_frames() -> None:
         conflicts_df=conflicts,
     )
 
-    # Should be a JSON-friendly dictionary mirroring OrganismalityResult.
     assert isinstance(result, dict)
     assert set(result.keys()) == {"global_oi", "regional_oi", "metadata"}
     assert 0.0 <= float(result["global_oi"]) <= 1.0
@@ -48,18 +46,18 @@ def test_metric_engine_uia_from_series() -> None:
     we get a UIASummary instance with the right dimensions.
     """
     index = pd.date_range("2025-01-01", periods=5, freq="D")
-    C = pd.Series([0.2, 0.3, 0.4, 0.5, 0.6], index=index)
-    S = pd.Series([1.0, 0.95, 0.9, 0.85, 0.8], index=index)
-    I = pd.Series([0.1, 0.2, 0.35, 0.5, 0.7], index=index)
+    coherence = pd.Series([0.2, 0.3, 0.4, 0.5, 0.6], index=index)
+    entropy = pd.Series([1.0, 0.95, 0.9, 0.85, 0.8], index=index)
+    info_series = pd.Series([0.1, 0.2, 0.35, 0.5, 0.7], index=index)
 
     engine = MetricEngine()
     summary = engine.uia_from_series(
         interface_id="test_interface",
         R_scalar=1.0,
         B_scalar=1.0,
-        C_series=C,
-        S_series=S,
-        I_series=I,
+        C_series=coherence,
+        S_series=entropy,
+        I_series=info_series,
         M_E=0.5,
         metadata={"lab": "test"},
     )

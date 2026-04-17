@@ -1,7 +1,6 @@
-# api/routers/metrics.py
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 from fastapi import APIRouter
@@ -20,7 +19,7 @@ class OrganismalityPayload(BaseModel):
 
     treaties:
         List of records used to build a treaties DataFrame.
-        Example schema (you can adapt this to your data):
+        Example schema:
         {
           "region": "EU",
           "treaty_count": 42,
@@ -37,12 +36,12 @@ class OrganismalityPayload(BaseModel):
         }
     """
 
-    treaties: List[Dict[str, Any]]
-    conflicts: List[Dict[str, Any]]
+    treaties: list[dict[str, Any]]
+    conflicts: list[dict[str, Any]]
 
 
 @router.get("/ping")
-async def ping() -> Dict[str, str]:
+async def ping() -> dict[str, str]:
     """
     Lightweight ping endpoint for quick connectivity checks.
     """
@@ -50,7 +49,7 @@ async def ping() -> Dict[str, str]:
 
 
 @router.post("/organismality")
-async def compute_organismality(payload: OrganismalityPayload) -> Dict[str, Any]:
+async def compute_organismality(payload: OrganismalityPayload) -> dict[str, Any]:
     """
     Compute the Organismality Index (OI) from treaty and conflict records.
 
@@ -65,5 +64,4 @@ async def compute_organismality(payload: OrganismalityPayload) -> Dict[str, Any]
         treaties_df=treaties_df,
         conflicts_df=conflicts_df,
     )
-    # result is already JSON-friendly thanks to the service layer
     return result

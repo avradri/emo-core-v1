@@ -1,4 +1,4 @@
-from tests.fixtures.romania_disaster_demo import (
+from api.demo.romania_disaster_demo import (
     ROMANIA_DISASTER_DELIVERY,
     ROMANIA_DISASTER_DIAGNOSTIC,
     ROMANIA_DISASTER_POLICY,

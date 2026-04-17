@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -17,8 +16,8 @@ class SynergyResult:
     """
 
     synergy_index: float
-    per_stream_contribution: Dict[str, float]
-    metadata: Dict[str, str]
+    per_stream_contribution: dict[str, float]
+    metadata: dict[str, str]
 
 
 def compute_gaussian_synergy(df: pd.DataFrame) -> SynergyResult:
@@ -52,7 +51,7 @@ def compute_gaussian_synergy(df: pd.DataFrame) -> SynergyResult:
       V_total < V_diag, and the index becomes positive.
 
     This is not a full O-information, but provides a consistent scalar
-    for early versions of EMO. :contentReference[oaicite:25]{index=25}
+    for early versions of EMO.
     """
     if df.empty or df.shape[1] < 2:
         return SynergyResult(0.0, {}, {"definition": "degenerate"})
@@ -67,11 +66,10 @@ def compute_gaussian_synergy(df: pd.DataFrame) -> SynergyResult:
     eps = 1e-9
     synergy_index = (v_diag - v_total) / max(v_diag, eps)
 
-    # Simple contribution: variance share
     variances = np.diag(cov)
     total_var = float(variances.sum()) or 1.0
     per_stream = {
-        col: float(v / total_var) for col, v in zip(df.columns, variances)
+        col: float(v / total_var) for col, v in zip(df.columns, variances, strict=False)
     }
 
     return SynergyResult(

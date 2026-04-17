@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict
 
 import numpy as np
 
@@ -13,8 +12,8 @@ class ModelSnapshot:
     Minimal snapshot of a model state for UIA purposes.
     """
 
-    parameters: np.ndarray  # parameter vector θ
-    metrics: Dict[str, float]  # e.g., skill, loss, rmse
+    parameters: np.ndarray
+    metrics: dict[str, float]
 
 
 class UIAModel(ABC):
@@ -40,7 +39,7 @@ class DummyModel(UIAModel):
 
     def sample_snapshots(self, n: int) -> list[ModelSnapshot]:
         xs = np.random.randn(n, self.dim)
-        snapshots = []
+        snapshots: list[ModelSnapshot] = []
         for i in range(n):
             theta = xs[i]
             snapshots.append(

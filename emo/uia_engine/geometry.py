@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Tuple
+from collections.abc import Iterable
 
 import numpy as np
 
@@ -9,7 +9,7 @@ from .models import ModelSnapshot
 
 def estimate_fisher_information(
     snapshots: Iterable[ModelSnapshot],
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Very approximate Fisher information estimator.
 
@@ -19,35 +19,26 @@ def estimate_fisher_information(
 
     This is intentionally crude; it gives us a dimensionless
     scalar curvature proxy for UIA experiments without tying us
-    to a particular parametric form. :contentReference[oaicite:28]{index=28}
+    to a particular parametric form.
     """
     thetas = []
     grads = []
-    eps = 1e-6
 
     snaps = list(snapshots)
     if len(snaps) < 2:
         raise ValueError("Need at least two snapshots to estimate Fisher")
 
-    for s in snaps:
-        theta = np.asarray(s.parameters, dtype=float)
-        m = float(s.metrics.get("skill", 0.0) or 0.0)
-        if m <= 0:
+    for snapshot in snaps:
+        theta = np.asarray(snapshot.parameters, dtype=float)
+        metric = float(snapshot.metrics.get("skill", 0.0) or 0.0)
+        if metric <= 0:
             continue
-        # numeric gradient via small random perturbation
         dim = theta.shape[0]
-        g = np.zeros_like(theta)
+        gradient = np.zeros_like(theta)
         for i in range(dim):
-            d = np.zeros_like(theta)
-            d[i] = eps
-            m_plus = float(m)
-            m_minus = float(m)
-            # We don't have direct access to m(θ±ε e_i) here, so this is
-            # a strongly simplified proxy: treat gradient as proportional
-            # to -θ, which is correct for a Gaussian toy model.
-            g[i] = -theta[i]
+            gradient[i] = -theta[i]
         thetas.append(theta)
-        grads.append(g)
+        grads.append(gradient)
 
     G = np.stack(grads, axis=0)
     fisher = G.T @ G / max(G.shape[0] - 1, 1)

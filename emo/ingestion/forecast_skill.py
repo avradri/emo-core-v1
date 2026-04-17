@@ -1,15 +1,17 @@
-# emo/ingestion/forecast_skill.py
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 
 import requests
 
-from .base import DataLakeLayout, PipelineRun, now_utc, ensure_parent
+from .base import (
+    DataLakeLayout,
+    PipelineRun,
+    ensure_parent,
+    now_utc,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class ForecastSkillConfig:
 
 def run_forecast_skill_pipeline(
     cfg: ForecastSkillConfig,
-    layout: Optional[DataLakeLayout] = None,
+    layout: DataLakeLayout | None = None,
     timeout: int = 60,
 ) -> PipelineRun:
     """
@@ -42,27 +44,31 @@ def run_forecast_skill_pipeline(
     - a timestamped snapshot in raw/forecast_skill/
     - a canonical copy in clean/forecast_skill/{canonical_name}.csv
 
-    Intended cadence: **yearly** (or when new skill series become available).
+    Intended cadence: yearly, or whenever a new skill series is published.
     """
     layout = layout or DataLakeLayout.from_env()
     started = now_utc()
-    artifacts = {}
+    artifacts: dict[str, str] = {}
 
     try:
         LOG.info("Downloading forecast skill CSV from %s", cfg.url)
-        resp = requests.get(cfg.url, timeout=timeout)
-        resp.raise_for_status()
-        content = resp.content
+        response = requests.get(cfg.url, timeout=timeout)
+        response.raise_for_status()
+        content = response.content
 
         ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
         raw_path = layout.subpath(
-            "raw", "forecast_skill", f"{cfg.canonical_name}_{ts}.csv"
+            "raw",
+            "forecast_skill",
+            f"{cfg.canonical_name}_{ts}.csv",
         )
         ensure_parent(raw_path)
         raw_path.write_bytes(content)
 
         clean_path = layout.subpath(
-            "clean", "forecast_skill", f"{cfg.canonical_name}.csv"
+            "clean",
+            "forecast_skill",
+            f"{cfg.canonical_name}.csv",
         )
         ensure_parent(clean_path)
         clean_path.write_bytes(content)
@@ -73,8 +79,8 @@ def run_forecast_skill_pipeline(
         }
         status = "success"
         detail = None
-        records = None  # unknown here; metric layer will parse
-    except Exception as exc:  # pragma: no cover - defensive
+        records = None
+    except Exception as exc:  # pragma: no cover
         LOG.exception("Forecast skill pipeline failed: %s", exc)
         status = "failed"
         detail = str(exc)
@@ -90,6 +96,7 @@ def run_forecast_skill_pipeline(
         detail=detail,
         artifacts=artifacts or None,
     )
+
     from .base import log_pipeline_run
 
     log_pipeline_run(run, layout=layout)

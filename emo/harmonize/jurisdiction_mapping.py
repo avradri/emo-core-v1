@@ -1,7 +1,7 @@
-from typing import Optional
+from __future__ import annotations
 
 
-def normalize_jurisdiction(value: Optional[str]) -> Optional[str]:
+def normalize_jurisdiction(value: str | None) -> str | None:
     if value is None:
         return None
 

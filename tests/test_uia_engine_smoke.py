@@ -12,16 +12,16 @@ def test_compute_a_uia_smoke() -> None:
     Uses synthetic but dimensionally consistent series for C, S, I.
     """
     index = pd.date_range("2025-01-01", periods=5, freq="D")
-    C = pd.Series([0.2, 0.3, 0.4, 0.5, 0.6], index=index)
-    S = pd.Series([1.0, 0.95, 0.9, 0.85, 0.8], index=index)
-    I = pd.Series([0.1, 0.2, 0.35, 0.5, 0.7], index=index)
+    coherence = pd.Series([0.2, 0.3, 0.4, 0.5, 0.6], index=index)
+    entropy = pd.Series([1.0, 0.95, 0.9, 0.85, 0.8], index=index)
+    info_series = pd.Series([0.1, 0.2, 0.35, 0.5, 0.7], index=index)
 
     snapshot = compute_a_uia(
         R_scalar=1.0,
         B_scalar=1.0,
-        C_series=C,
-        S_series=S,
-        I_series=I,
+        C_series=coherence,
+        S_series=entropy,
+        I_series=info_series,
         M_E_scalar=0.5,
     )
 

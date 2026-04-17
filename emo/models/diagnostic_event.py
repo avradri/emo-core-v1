@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -9,12 +10,12 @@ class DiagnosticEvent:
     hazard_type: str
     source: str
     issued_at: str
-    valid_from: Optional[str] = None
-    valid_to: Optional[str] = None
-    severity: Optional[float] = None
-    confidence: Optional[float] = None
-    geo_scope: Optional[str] = None
-    actor_scope: Optional[str] = None
-    diagnostic_class: Optional[str] = None
-    evidence_url: Optional[str] = None
-    validation_status: Optional[str] = None
+    valid_from: str | None = None
+    valid_to: str | None = None
+    severity: float | None = None
+    confidence: float | None = None
+    geo_scope: str | None = None
+    actor_scope: str | None = None
+    diagnostic_class: str | None = None
+    evidence_url: str | None = None
+    validation_status: str | None = None

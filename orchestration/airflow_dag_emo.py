@@ -8,13 +8,12 @@ from airflow.decorators import task
 
 from emo.ingestion import (
     DataLakeLayout,
-    emo_daily_attention,
-    emo_weekly_synergy,
-    emo_monthly_oi_smf,
-    emo_yearly_tau,
     ForecastSkillConfig,
+    emo_daily_attention,
+    emo_monthly_oi_smf,
+    emo_weekly_synergy,
+    emo_yearly_tau,
 )
-
 
 default_args = {
     "owner": "emo",

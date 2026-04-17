@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: ["main", "master"]
+    branches:
+      - main
+      - master
+      - feature/dac-mode-and-snapshot-query-params
   pull_request:
-    branches: ["*"]
+    branches:
+      - "*"
+  workflow_dispatch:
 
 jobs:
   test:
@@ -26,10 +31,14 @@ jobs:
           pip install ".[dev]"
 
       - name: Run tests
+        env:
+          PYTHONPATH: .
         run: |
           pytest -q
 
       - name: Type check (mypy)
+        env:
+          PYTHONPATH: .
         run: |
           mypy emo api orchestration
 

@@ -1,22 +1,20 @@
-# emo/ingestion/pipelines.py
 from __future__ import annotations
 
 import logging
-from typing import List, Optional
 
 from .base import DataLakeLayout, PipelineRun
-from .gdelt import GDELTTopicConfig, run_gdelt_timeline_pipeline
-from .wikipedia import WikipediaArticleConfig, run_wikipedia_pageviews_pipeline
-from .owid import OWIDChartConfig, run_owid_pipeline
-from .openalex import OpenAlexConceptConfig, run_openalex_pipeline
 from .forecast_skill import ForecastSkillConfig, run_forecast_skill_pipeline
+from .gdelt import GDELTTopicConfig, run_gdelt_timeline_pipeline
+from .openalex import OpenAlexConceptConfig, run_openalex_pipeline
+from .owid import OWIDChartConfig, run_owid_pipeline
+from .wikipedia import WikipediaArticleConfig, run_wikipedia_pageviews_pipeline
 
 LOG = logging.getLogger(__name__)
 
 
 def emo_daily_attention(
-    layout: Optional[DataLakeLayout] = None,
-) -> List[PipelineRun]:
+    layout: DataLakeLayout | None = None,
+) -> list[PipelineRun]:
     """
     Daily pipeline:
 
@@ -26,12 +24,38 @@ def emo_daily_attention(
     layout = layout or DataLakeLayout.from_env()
 
     topics = [
-        GDELTTopicConfig(keyword="climate change", label="climate_change", timespan="3m"),
-        GDELTTopicConfig(keyword="extreme heat", label="extreme_heat", timespan="3m"),
-        GDELTTopicConfig(keyword="floods OR flooding", label="floods", timespan="3m"),
-        GDELTTopicConfig(keyword="pandemic", label="pandemic", timespan="3m"),
-        GDELTTopicConfig(keyword='"artificial intelligence" AND safety', label="ai_safety", timespan="3m"),
+        GDELTTopicConfig(
+            keyword="climate change",
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            label="climate_change",
+        ),
+        GDELTTopicConfig(
+            keyword="extreme heat",
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            label="extreme_heat",
+        ),
+        GDELTTopicConfig(
+            keyword="floods OR flooding",
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            label="floods",
+        ),
+        GDELTTopicConfig(
+            keyword="pandemic",
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            label="pandemic",
+        ),
+        GDELTTopicConfig(
+            keyword='"artificial intelligence" AND safety',
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            label="ai_safety",
+        ),
     ]
+
     wiki_articles = [
         WikipediaArticleConfig(
             project="en.wikipedia.org",
@@ -53,21 +77,20 @@ def emo_daily_attention(
         ),
     ]
 
-    runs: List[PipelineRun] = []
+    runs: list[PipelineRun] = []
     runs.append(run_gdelt_timeline_pipeline(topics, layout=layout))
     runs.append(run_wikipedia_pageviews_pipeline(wiki_articles, layout=layout))
     return runs
 
 
 def emo_weekly_synergy(
-    layout: Optional[DataLakeLayout] = None,
-) -> List[PipelineRun]:
+    layout: DataLakeLayout | None = None,
+) -> list[PipelineRun]:
     """
     Weekly pipeline:
 
     - OpenAlex topic timelines for a core set of concepts / topics.
-    - OWID charts for complementary macro indicators (planetary boundaries,
-      emissions, etc.).
+    - OWID charts for complementary macro indicators.
     """
     layout = layout or DataLakeLayout.from_env()
 
@@ -91,30 +114,25 @@ def emo_weekly_synergy(
             year_to=2025,
         ),
     ]
-    # You can add specific OWID charts here as needed
+
     owid_charts = [
         OWIDChartConfig(chart_id="co2"),
-        OWIDChartConfig(chart_id="ghg-emissions-by-sector"),  # adjust to real IDs
+        OWIDChartConfig(chart_id="ghg-emissions-by-sector"),
     ]
 
-    runs: List[PipelineRun] = []
+    runs: list[PipelineRun] = []
     runs.append(run_openalex_pipeline(concepts, layout=layout))
     runs.append(run_owid_pipeline(owid_charts, layout=layout))
     return runs
 
 
 def emo_monthly_oi_smf(
-    layout: Optional[DataLakeLayout] = None,
-) -> List[PipelineRun]:
+    layout: DataLakeLayout | None = None,
+) -> list[PipelineRun]:
     """
     Monthly pipeline:
 
-    - OWID charts for OI & SMF inputs (treaties, emissions, planetary boundaries).
-    - You can extend this to run the metric engines directly (OI, SMF) once
-      your metric modules are wired to read from the feature tables.
-
-    For now, we focus on ingestion; metric computation can be called from
-    a higher-level orchestration layer if desired.
+    - OWID charts for OI & SMF inputs.
     """
     layout = layout or DataLakeLayout.from_env()
 
@@ -122,24 +140,24 @@ def emo_monthly_oi_smf(
         OWIDChartConfig(chart_id="co2"),
         OWIDChartConfig(chart_id="co2-per-capita"),
         OWIDChartConfig(chart_id="cumulative-co2"),
-        # Add treaty/boundary charts as needed
     ]
 
-    runs: List[PipelineRun] = []
+    runs: list[PipelineRun] = []
     runs.append(run_owid_pipeline(owid_charts, layout=layout))
     return runs
 
 
 def emo_yearly_tau(
     skill_config: ForecastSkillConfig,
-    layout: Optional[DataLakeLayout] = None,
-) -> List[PipelineRun]:
+    layout: DataLakeLayout | None = None,
+) -> list[PipelineRun]:
     """
     Yearly pipeline:
 
-    - Mirror forecast-skill CSVs for τ_I (information-time) computation.
+    - Mirror forecast-skill CSVs for τ_I computation.
     """
     layout = layout or DataLakeLayout.from_env()
-    runs: List[PipelineRun] = []
+
+    runs: list[PipelineRun] = []
     runs.append(run_forecast_skill_pipeline(skill_config, layout=layout))
     return runs
