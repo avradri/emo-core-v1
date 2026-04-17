@@ -1,4 +1,3 @@
-cat > emo/uia_engine/models.py <<'PY'
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -50,4 +49,3 @@ class DummyModel(UIAModel):
                 )
             )
         return snapshots
-PY

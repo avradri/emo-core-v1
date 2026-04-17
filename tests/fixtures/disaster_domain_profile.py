@@ -1,6 +1,5 @@
 from emo.models.domain_profile import DomainProfile
 
-
 DISASTER_DOMAIN_PROFILE = DomainProfile(
     domain="disaster",
     diagnostic_types=[

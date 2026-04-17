@@ -1,4 +1,3 @@
-cat > emo/uia_engine/aggregate.py <<'PY'
 """
 UIA aggregation engine for EMO-Core.
 """
@@ -124,4 +123,3 @@ __all__ = [
     "compute_a_uia",
     "default_uia_coefficients",
 ]
-PY

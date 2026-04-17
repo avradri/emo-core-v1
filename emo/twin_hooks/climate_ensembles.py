@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+cd ~/emo-core-v1
+cat > emo/twin_hooks/climate_ensembles.py <<'PY'
+from __future__ import annotations
+
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 

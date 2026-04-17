@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import List
 
 try:  # Prefect is an optional dependency
     from prefect import flow, task  # type: ignore[import]
@@ -34,8 +33,8 @@ from emo.ingestion import (
     ForecastSkillConfig,
     PipelineRun,
     emo_daily_attention,
-    emo_weekly_synergy,
     emo_monthly_oi_smf,
+    emo_weekly_synergy,
     emo_yearly_tau,
 )
 
@@ -43,7 +42,7 @@ LOG = logging.getLogger(__name__)
 
 
 @task
-def _log_runs(name: str, runs: List[PipelineRun]) -> None:
+def _log_runs(name: str, runs: list[PipelineRun]) -> None:
     """Log a short summary of completed pipeline runs."""
     total = sum((r.records or 0) for r in runs)
     LOG.info("Flow %s completed %d runs, total records=%s", name, len(runs), total)

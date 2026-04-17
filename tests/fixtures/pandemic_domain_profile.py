@@ -1,6 +1,5 @@
 from emo.models.domain_profile import DomainProfile
 
-
 PANDEMIC_DOMAIN_PROFILE = DomainProfile(
     domain="pandemic",
     diagnostic_types=[
