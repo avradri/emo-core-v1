@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out branch
+      - name: Check out current branch
         uses: actions/checkout@v4
         with:
-          ref: feature/dac-mode-and-snapshot-query-params
+          ref: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
@@ -40,5 +40,5 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Apply Ruff auto-fixes"
-            git push origin feature/dac-mode-and-snapshot-query-params
+            git push origin HEAD:${{ github.ref_name }}
           fi
