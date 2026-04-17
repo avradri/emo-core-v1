@@ -14,7 +14,7 @@ This means EMO no longer functions only as a cognitive observatory. It now also 
 
 - **Emergent Mind Observatory (EMO)**:
 
-- Ingests multi‑stream global data (planetary boundaries, climate models, digital twins, early‑warning systems, media, knowledge graphs, trade and finance). :contentReference[oaicite:9]{index=9}  
+- Ingests multi-stream global data (planetary boundaries, climate models, digital twins, early-warning systems, media, knowledge graphs, trade and finance). 
 - Computes species‑level cognition metrics:
   - **OI** – Organismality Index (cooperation vs conflict)
   - **SΦ / Ω** – Synergy / O‑information across media, science, policy
