@@ -58,3 +58,10 @@ class RemedyComparisonResponse(BaseModel):
     profile: dict
     portfolio: dict
     comparison_report: dict
+
+
+class RemedyLearningResponse(BaseModel):
+    profile: dict
+    portfolio: dict
+    score: dict
+    learning_report: dict

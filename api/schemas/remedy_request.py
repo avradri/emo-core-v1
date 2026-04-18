@@ -12,3 +12,8 @@ class RemedyRequest(BaseModel):
     deployment_score: float | None = None
     persistence_score: float | None = None
     contradiction_score: float | None = None
+
+
+class RemedyLearningRequest(RemedyRequest):
+    observed_dac_gain: float
+    observed_persistence: float

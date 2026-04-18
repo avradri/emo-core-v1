@@ -323,3 +323,36 @@ def test_remedy_compare_endpoint_returns_comparison_report() -> None:
     assert "baseline" in labels
     assert "compact" in labels
     assert "full" in labels
+def test_remedy_learn_endpoint_returns_learning_report() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+        "observed_dac_gain": 0.52,
+        "observed_persistence": 0.41,
+    }
+
+    response = client.post("/remedy/learn", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "score" in data
+    assert "learning_report" in data
+
+    report = data["learning_report"]
+    assert "portfolio_id" in report
+    assert "expected_dac_gain" in report
+    assert "observed_dac_gain" in report
+    assert "learning_gap" in report
+    assert "persistence_gap" in report
+    assert "adjustment_signal" in report
+
+    assert report["adjustment_signal"] in {"upweight", "hold", "downweight"}
