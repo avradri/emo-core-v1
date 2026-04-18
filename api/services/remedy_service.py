@@ -7,6 +7,9 @@ from api.schemas.remedy_request import RemedyLearningRequest
 from emo.remedy.learning import build_learning_report
 
 from emo.remedy.comparison import build_portfolio_comparison_report
+from emo.remedy.explain import build_explanation
+from emo.remedy.tradeoffs import build_tradeoff_report
+from emo.remedy.comparison import build_portfolio_comparison_report
 from emo.remedy.legitimacy import build_legitimacy_report
 from emo.remedy.tradeoffs import build_tradeoff_report
 from emo.remedy.simulation import simulate_remedy_pathways
@@ -98,19 +101,15 @@ def build_remedy_explain_result(payload: RemedyRequest) -> dict:
     portfolio = pipeline["portfolio"]
     score = pipeline["score"]
 
-    bottlenecks = profile.dominant_bottlenecks or ["none clearly isolated"]
-    option_names = [option.name for option in portfolio.options] or ["no options selected"]
+    tradeoff_report = build_tradeoff_report(score)
+    comparison_report = build_portfolio_comparison_report(portfolio)
 
-    explanation = (
-        f"Dominant bottlenecks: {', '.join(bottlenecks)}. "
-        f"Recommended portfolio: {', '.join(option_names)}. "
-        f"Overall score: {score.overall_score:.3f}. "
-        f"Feasibility: {score.feasibility:.3f}. "
-        f"Expected DAC gain: {score.expected_dac_gain:.3f}. "
-        f"Persistence likelihood: {score.persistence_likelihood:.3f}. "
-        f"Contradiction risk: {score.contradiction_risk:.3f}. "
-        f"Justice risk: {score.justice_risk:.3f}. "
-        "This explanation is rule-based and provisional."
+    explanation = build_explanation(
+        portfolio=portfolio,
+        score=score,
+        tradeoff_report=tradeoff_report,
+        comparison_report=comparison_report,
+        dominant_bottlenecks=profile.dominant_bottlenecks,
     )
 
     return {

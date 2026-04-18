@@ -171,7 +171,8 @@ def test_remedy_explain_endpoint_returns_explanation() -> None:
     assert isinstance(data["explanation"], str)
     assert "Dominant bottlenecks" in data["explanation"]
     assert "Recommended portfolio" in data["explanation"]
-
+    assert "Legitimacy penalty" in data["explanation"]
+    assert "Tradeoff summary" in data["explanation"]
 
 def test_remedy_simulate_endpoint_returns_simulations() -> None:
     payload = {
