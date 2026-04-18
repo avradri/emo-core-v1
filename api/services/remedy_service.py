@@ -164,7 +164,6 @@ def build_remedy_comparison_result(payload: RemedyRequest) -> dict:
         "comparison_report": asdict(comparison_report),
     }
 
-
 def build_remedy_learning_result(payload: RemedyLearningRequest) -> dict:
     pipeline = _build_remedy_pipeline(payload)
 
