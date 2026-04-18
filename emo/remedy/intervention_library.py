@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from emo.models.intervention_option import InterventionOption
 
-
 DOMAIN_REMEDY_LIBRARY: dict[str, list[InterventionOption]] = {
     "pandemic": [
         InterventionOption(

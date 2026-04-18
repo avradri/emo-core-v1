@@ -3,7 +3,6 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 import emo
-
 from api.routers import dac, interfaces, metrics, remedy, uia
 
 DESCRIPTION = """

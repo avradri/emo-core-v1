@@ -3,7 +3,6 @@ from __future__ import annotations
 from emo.models.portfolio_score import PortfolioScore
 from emo.models.remedy_portfolio import RemedyPortfolio
 
-
 _CAPACITY_TO_FEASIBILITY = {
     "low": 0.9,
     "medium": 0.65,

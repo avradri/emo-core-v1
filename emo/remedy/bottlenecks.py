@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from emo.models.bottleneck_profile import BottleneckProfile
 
-
 BOTTLENECK_KEYS = (
     "validation",
     "translation",
