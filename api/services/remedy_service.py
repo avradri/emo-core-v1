@@ -164,16 +164,7 @@ def build_remedy_comparison_result(payload: RemedyRequest) -> dict:
         "comparison_report": asdict(comparison_report),
     }
 
-def build_remedy_comparison_result(payload: RemedyRequest) -> dict:
-    pipeline = _build_remedy_pipeline(payload)
 
-    comparison_report = build_portfolio_comparison_report(pipeline["portfolio"])
-
-    return {
-        "profile": asdict(pipeline["profile"]),
-        "portfolio": asdict(pipeline["portfolio"]),
-        "comparison_report": asdict(comparison_report),
-    }
 def build_remedy_learning_result(payload: RemedyLearningRequest) -> dict:
     pipeline = _build_remedy_pipeline(payload)
 
