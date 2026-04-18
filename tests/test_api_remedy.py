@@ -142,3 +142,28 @@ def test_remedy_library_endpoint_returns_domain_library() -> None:
     assert "option_id" in first_option
     assert "family" in first_option
     assert "name" in first_option
+def test_remedy_explain_endpoint_returns_explanation() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+    }
+
+    response = client.post("/remedy/explain", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "explanation" in data
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "score" in data
+
+    assert isinstance(data["explanation"], str)
+    assert "Dominant bottlenecks" in data["explanation"]
+    assert "Recommended portfolio" in data["explanation"]

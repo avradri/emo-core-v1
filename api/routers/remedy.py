@@ -5,12 +5,14 @@ from fastapi import APIRouter
 from api.schemas.remedy_request import RemedyRequest
 from api.schemas.remedy_response import (
     RemedyBottleneckResponse,
+    RemedyExplainResponse,
     RemedyLibraryResponse,
     RemedyOptionsResponse,
     RemedyPortfolioResponse,
     RemedyScoreResponse,
 )
 from api.services.remedy_service import (
+    build_remedy_explain_result,
     build_remedy_library_result,
     build_remedy_options,
     build_remedy_portfolio_result,
@@ -25,6 +27,12 @@ router = APIRouter(prefix="/remedy", tags=["remedy"])
 def remedy_library(domain: str | None = None) -> RemedyLibraryResponse:
     result = build_remedy_library_result(domain)
     return RemedyLibraryResponse(**result)
+
+
+@router.post("/explain", response_model=RemedyExplainResponse)
+def remedy_explain(payload: RemedyRequest) -> RemedyExplainResponse:
+    result = build_remedy_explain_result(payload)
+    return RemedyExplainResponse(**result)
 
 
 @router.post("/bottlenecks", response_model=RemedyBottleneckResponse)

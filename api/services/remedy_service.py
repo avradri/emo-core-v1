@@ -84,3 +84,31 @@ def build_remedy_library_result(domain: str | None = None) -> dict:
             for name, options in library.items()
         }
     }
+def build_remedy_explain_result(payload: RemedyRequest) -> dict:
+    pipeline = _build_remedy_pipeline(payload)
+
+    profile = pipeline["profile"]
+    portfolio = pipeline["portfolio"]
+    score = pipeline["score"]
+
+    bottlenecks = profile.dominant_bottlenecks or ["none clearly isolated"]
+    option_names = [option.name for option in portfolio.options] or ["no options selected"]
+
+    explanation = (
+        f"Dominant bottlenecks: {', '.join(bottlenecks)}. "
+        f"Recommended portfolio: {', '.join(option_names)}. "
+        f"Overall score: {score.overall_score:.3f}. "
+        f"Feasibility: {score.feasibility:.3f}. "
+        f"Expected DAC gain: {score.expected_dac_gain:.3f}. "
+        f"Persistence likelihood: {score.persistence_likelihood:.3f}. "
+        f"Contradiction risk: {score.contradiction_risk:.3f}. "
+        f"Justice risk: {score.justice_risk:.3f}. "
+        "This explanation is rule-based and provisional."
+    )
+
+    return {
+        "explanation": explanation,
+        "profile": asdict(profile),
+        "portfolio": asdict(portfolio),
+        "score": asdict(score),
+    }

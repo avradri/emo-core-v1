@@ -25,3 +25,10 @@ class RemedyScoreResponse(BaseModel):
 
 class RemedyLibraryResponse(BaseModel):
     library: dict[str, list[dict]]
+
+
+class RemedyExplainResponse(BaseModel):
+    explanation: str
+    profile: dict
+    portfolio: dict
+    score: dict
