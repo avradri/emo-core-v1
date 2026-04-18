@@ -35,16 +35,17 @@ def _average(values: list[float]) -> float:
     return sum(values) / len(values)
 
 
+def _compute_legitimacy_penalty(justice_risk: float) -> float:
+    """
+    v0.1 legitimacy-aware scoring:
+    use justice risk as a first visible legitimacy penalty.
+    """
+    return round(0.12 * justice_risk, 3)
+
+
 def score_portfolio(portfolio: RemedyPortfolio) -> PortfolioScore:
     """
     Transparent v0.1 scoring for remedy portfolios.
-
-    This is intentionally simple:
-    - feasibility improves when required capacity is lower
-    - expected DAC gain improves when time to effect is shorter
-    - persistence improves with stronger evidence
-    - contradiction and justice risks increase with coordination and rights burdens
-    - semantic efficiency rewards shorter time to effect and lower coordination cost
     """
     if not portfolio.options:
         return PortfolioScore(
@@ -55,6 +56,7 @@ def score_portfolio(portfolio: RemedyPortfolio) -> PortfolioScore:
             contradiction_risk=0.0,
             semantic_efficiency=0.0,
             justice_risk=0.0,
+            legitimacy_penalty=0.0,
             overall_score=0.0,
             notes=["No intervention options were available in the portfolio."],
         )
@@ -105,6 +107,8 @@ def score_portfolio(portfolio: RemedyPortfolio) -> PortfolioScore:
         ]
     )
 
+    legitimacy_penalty = _compute_legitimacy_penalty(justice_risk)
+
     overall_score = (
         0.24 * feasibility
         + 0.24 * expected_dac_gain
@@ -112,6 +116,7 @@ def score_portfolio(portfolio: RemedyPortfolio) -> PortfolioScore:
         + 0.18 * semantic_efficiency
         - 0.08 * contradiction_risk
         - 0.06 * justice_risk
+        - legitimacy_penalty
     )
 
     overall_score = max(0.0, min(1.0, overall_score))
@@ -120,6 +125,7 @@ def score_portfolio(portfolio: RemedyPortfolio) -> PortfolioScore:
         "Score is rule-based and provisional.",
         "Higher overall score suggests a more plausible v0.1 portfolio.",
         "Contradiction and justice risks act as penalties, not hard exclusions.",
+        "Legitimacy penalty currently uses justice risk as a first-pass proxy.",
     ]
 
     return PortfolioScore(
@@ -130,6 +136,7 @@ def score_portfolio(portfolio: RemedyPortfolio) -> PortfolioScore:
         contradiction_risk=round(contradiction_risk, 3),
         semantic_efficiency=round(semantic_efficiency, 3),
         justice_risk=round(justice_risk, 3),
+        legitimacy_penalty=round(legitimacy_penalty, 3),
         overall_score=round(overall_score, 3),
         notes=notes,
     )

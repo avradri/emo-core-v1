@@ -12,5 +12,6 @@ class PortfolioScore:
     contradiction_risk: float
     semantic_efficiency: float
     justice_risk: float
+    legitimacy_penalty: float
     overall_score: float
     notes: list[str] = field(default_factory=list)
