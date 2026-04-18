@@ -292,3 +292,19 @@ def test_remedy_legitimacy_endpoint_returns_legitimacy_report() -> None:
     assert "rights_risk" in categories
     assert "transparency" in categories
     assert "contestability" in categories
+def test_remedy_library_endpoint_returns_climate_mitigation_domain() -> None:
+    response = client.get("/remedy/library?domain=climate_mitigation")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "library" in data
+    assert "climate_mitigation" in data["library"]
+
+    options = data["library"]["climate_mitigation"]
+    assert isinstance(options, list)
+    assert len(options) >= 1
+
+    names = {item["name"] for item in options}
+    assert "Climate budget alignment rule" in names
+    assert "Contradictory subsidy phaseout" in names

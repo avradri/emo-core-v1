@@ -136,6 +136,104 @@ DOMAIN_REMEDY_LIBRARY: dict[str, list[InterventionOption]] = {
             domains=["disaster"],
         ),
     ],
+    "climate_mitigation": [
+        InterventionOption(
+            option_id="climate_budget_alignment",
+            family="fiscal",
+            name="Climate budget alignment rule",
+            description=(
+                "Tie medium-term public expenditure and budget screening to "
+                "validated climate targets and carbon constraints."
+            ),
+            target_bottlenecks=["budget", "contradiction"],
+            required_capacity="medium",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["climate_mitigation"],
+        ),
+        InterventionOption(
+            option_id="climate_subsidy_phaseout",
+            family="regulatory",
+            name="Contradictory subsidy phaseout",
+            description=(
+                "Identify and phase out high-emissions subsidies that undermine "
+                "declared mitigation targets."
+            ),
+            target_bottlenecks=["contradiction", "budget"],
+            required_capacity="high",
+            time_to_effect="medium",
+            evidence_level="strong",
+            rights_risk="medium",
+            coordination_cost="high",
+            domains=["climate_mitigation"],
+        ),
+        InterventionOption(
+            option_id="climate_grid_permitting",
+            family="infrastructure_capacity",
+            name="Grid and permitting acceleration",
+            description=(
+                "Accelerate permitting, transmission expansion, and interconnection "
+                "capacity for low-carbon deployment."
+            ),
+            target_bottlenecks=["deployment", "persistence"],
+            required_capacity="high",
+            time_to_effect="medium",
+            evidence_level="strong",
+            rights_risk="low",
+            coordination_cost="high",
+            domains=["climate_mitigation"],
+        ),
+        InterventionOption(
+            option_id="climate_procurement_standard",
+            family="procurement_logistics",
+            name="Low-carbon public procurement standard",
+            description=(
+                "Use public procurement rules to shift demand toward low-carbon "
+                "materials, energy, and infrastructure."
+            ),
+            target_bottlenecks=["translation", "deployment"],
+            required_capacity="medium",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["climate_mitigation"],
+        ),
+        InterventionOption(
+            option_id="climate_just_transition_support",
+            family="social_protection_legitimacy",
+            name="Just transition support package",
+            description=(
+                "Pair mitigation policy with income support, retraining, and local "
+                "transition assistance to improve durability and legitimacy."
+            ),
+            target_bottlenecks=["persistence", "contradiction"],
+            required_capacity="medium",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["climate_mitigation"],
+        ),
+        InterventionOption(
+            option_id="climate_cross_border_coordination",
+            family="treaty_cross_border_cooperation",
+            name="Cross-border mitigation coordination",
+            description=(
+                "Coordinate standards, grids, industrial transition, and carbon "
+                "accountability across jurisdictions."
+            ),
+            target_bottlenecks=["translation", "persistence"],
+            required_capacity="high",
+            time_to_effect="long",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="high",
+            domains=["climate_mitigation"],
+        ),
+    ],
 }
 
 
@@ -161,6 +259,7 @@ def get_intervention_options(
             ranked.append(option)
 
     return ranked if ranked else options
+
 
 def get_remedy_library(domain: str | None = None) -> dict[str, list[InterventionOption]]:
     """
