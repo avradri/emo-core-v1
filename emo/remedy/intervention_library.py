@@ -234,6 +234,104 @@ DOMAIN_REMEDY_LIBRARY: dict[str, list[InterventionOption]] = {
             domains=["climate_mitigation"],
         ),
     ],
+"food_security": [
+        InterventionOption(
+            option_id="food_buffer_stock_protocol",
+            family="procurement_logistics",
+            name="Buffer stock release protocol",
+            description=(
+                "Predefine trigger rules for strategic food reserve release under "
+                "validated supply and price stress conditions."
+            ),
+            target_bottlenecks=["deployment", "translation"],
+            required_capacity="medium",
+            time_to_effect="short",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["food_security"],
+        ),
+        InterventionOption(
+            option_id="food_income_support_targeting",
+            family="social_protection_legitimacy",
+            name="Targeted food income support",
+            description=(
+                "Deliver temporary income support or food vouchers to vulnerable "
+                "households during acute food-price shocks."
+            ),
+            target_bottlenecks=["persistence", "contradiction"],
+            required_capacity="medium",
+            time_to_effect="short",
+            evidence_level="strong",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["food_security"],
+        ),
+        InterventionOption(
+            option_id="food_import_coordination_cell",
+            family="coordination_institutional",
+            name="Import coordination cell",
+            description=(
+                "Coordinate customs, ports, wholesalers, and emergency sourcing to "
+                "reduce friction during supply disruption."
+            ),
+            target_bottlenecks=["deployment", "translation"],
+            required_capacity="high",
+            time_to_effect="short",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="high",
+            domains=["food_security"],
+        ),
+        InterventionOption(
+            option_id="food_school_meal_protection",
+            family="social_protection_legitimacy",
+            name="School meal continuity protection",
+            description=(
+                "Protect school feeding and child nutrition programs during fiscal "
+                "or supply-chain stress."
+            ),
+            target_bottlenecks=["persistence", "budget"],
+            required_capacity="medium",
+            time_to_effect="short",
+            evidence_level="strong",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["food_security"],
+        ),
+        InterventionOption(
+            option_id="food_agri_input_stabilization",
+            family="fiscal",
+            name="Agricultural input stabilization",
+            description=(
+                "Stabilize access to seeds, fertilizer, irrigation inputs, and fuel "
+                "for high-risk production regions."
+            ),
+            target_bottlenecks=["budget", "persistence"],
+            required_capacity="high",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="high",
+            domains=["food_security"],
+        ),
+        InterventionOption(
+            option_id="food_export_restriction_review",
+            family="regulatory",
+            name="Export restriction review rule",
+            description=(
+                "Review and constrain emergency export restrictions that intensify "
+                "regional food insecurity and policy contradiction."
+            ),
+            target_bottlenecks=["contradiction", "translation"],
+            required_capacity="medium",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="medium",
+            coordination_cost="high",
+            domains=["food_security"],
+        ),
+    ],
 }
 
 

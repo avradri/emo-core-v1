@@ -357,3 +357,19 @@ def test_remedy_learn_endpoint_returns_learning_report() -> None:
     assert "adjustment_signal" in report
 
     assert report["adjustment_signal"] in {"upweight", "hold", "downweight"}
+def test_remedy_library_endpoint_returns_food_security_domain() -> None:
+    response = client.get("/remedy/library?domain=food_security")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "library" in data
+    assert "food_security" in data["library"]
+
+    options = data["library"]["food_security"]
+    assert isinstance(options, list)
+    assert len(options) >= 1
+
+    names = {item["name"] for item in options}
+    assert "Buffer stock release protocol" in names
+    assert "Targeted food income support" in names
