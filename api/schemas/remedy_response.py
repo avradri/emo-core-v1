@@ -39,3 +39,10 @@ class RemedySimulationResponse(BaseModel):
     portfolio: dict
     score: dict
     simulations: list[dict]
+
+
+class RemedyTradeoffResponse(BaseModel):
+    profile: dict
+    portfolio: dict
+    score: dict
+    tradeoff_report: dict

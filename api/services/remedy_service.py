@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
+from emo.remedy.tradeoffs import build_tradeoff_report
 from emo.remedy.simulation import simulate_remedy_pathways
 from emo.remedy.intervention_library import get_remedy_library
 from api.schemas.remedy_request import RemedyRequest
@@ -126,4 +127,15 @@ def build_remedy_simulation_result(payload: RemedyRequest) -> dict:
         "portfolio": asdict(pipeline["portfolio"]),
         "score": asdict(pipeline["score"]),
         "simulations": [asdict(simulation) for simulation in simulations],
+    }
+def build_remedy_tradeoff_result(payload: RemedyRequest) -> dict:
+    pipeline = _build_remedy_pipeline(payload)
+
+    tradeoff_report = build_tradeoff_report(pipeline["score"])
+
+    return {
+        "profile": asdict(pipeline["profile"]),
+        "portfolio": asdict(pipeline["portfolio"]),
+        "score": asdict(pipeline["score"]),
+        "tradeoff_report": asdict(tradeoff_report),
     }

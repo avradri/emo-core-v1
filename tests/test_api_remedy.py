@@ -229,3 +229,35 @@ def test_remedy_simulate_endpoint_returns_simulations() -> None:
     assert "do_nothing" in scenario_names
     assert "selected_portfolio" in scenario_names
     assert "high_friction" in scenario_names
+def test_remedy_tradeoffs_endpoint_returns_tradeoff_report() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+    }
+
+    response = client.post("/remedy/tradeoffs", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "score" in data
+    assert "tradeoff_report" in data
+
+    report = data["tradeoff_report"]
+    assert "summary" in report
+    assert "tradeoffs" in report
+    assert isinstance(report["tradeoffs"], list)
+    assert len(report["tradeoffs"]) >= 1
+
+    dimensions = {item["dimension"] for item in report["tradeoffs"]}
+    assert "feasibility" in dimensions
+    assert "contradiction_risk" in dimensions
+    assert "overall_score" in dimensions

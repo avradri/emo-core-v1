@@ -11,6 +11,7 @@ from api.schemas.remedy_response import (
     RemedyPortfolioResponse,
     RemedyScoreResponse,
     RemedySimulationResponse,
+    RemedyTradeoffResponse,
 )
 from api.services.remedy_service import (
     build_remedy_explain_result,
@@ -20,6 +21,7 @@ from api.services.remedy_service import (
     build_remedy_profile,
     build_remedy_score_result,
     build_remedy_simulation_result,
+    build_remedy_tradeoff_result,
 )
 
 router = APIRouter(prefix="/remedy", tags=["remedy"])
@@ -41,6 +43,12 @@ def remedy_explain(payload: RemedyRequest) -> RemedyExplainResponse:
 def remedy_simulate(payload: RemedyRequest) -> RemedySimulationResponse:
     result = build_remedy_simulation_result(payload)
     return RemedySimulationResponse(**result)
+
+
+@router.post("/tradeoffs", response_model=RemedyTradeoffResponse)
+def remedy_tradeoffs(payload: RemedyRequest) -> RemedyTradeoffResponse:
+    result = build_remedy_tradeoff_result(payload)
+    return RemedyTradeoffResponse(**result)
 
 
 @router.post("/bottlenecks", response_model=RemedyBottleneckResponse)
