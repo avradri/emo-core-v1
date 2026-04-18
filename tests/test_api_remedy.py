@@ -45,6 +45,8 @@ def test_remedy_score_endpoint_returns_expected_shape() -> None:
     score = data["score"]
     assert score["portfolio_id"] == portfolio["portfolio_id"]
     assert 0.0 <= score["overall_score"] <= 1.0
+    assert "legitimacy_penalty" in score
+    assert score["legitimacy_penalty"] >= 0.0
 
 
 def test_remedy_portfolio_endpoint_returns_portfolio_only() -> None:
@@ -142,6 +144,8 @@ def test_remedy_library_endpoint_returns_domain_library() -> None:
     assert "option_id" in first_option
     assert "family" in first_option
     assert "name" in first_option
+
+
 def test_remedy_explain_endpoint_returns_explanation() -> None:
     payload = {
         "domain": "disaster",
@@ -168,36 +172,6 @@ def test_remedy_explain_endpoint_returns_explanation() -> None:
     assert "Dominant bottlenecks" in data["explanation"]
     assert "Recommended portfolio" in data["explanation"]
 
-def test_remedy_simulate_endpoint_returns_simulations() -> None:
-    payload = {
-        "domain": "disaster",
-        "jurisdiction": "RO",
-        "validation_score": 0.8,
-        "translation_score": 0.4,
-        "budget_score": 0.5,
-        "deployment_score": 0.6,
-        "persistence_score": 0.45,
-        "contradiction_score": 0.7,
-    }
-
-    response = client.post("/remedy/simulate", json=payload)
-
-    assert response.status_code == 200
-
-    data = response.json()
-    assert "profile" in data
-    assert "portfolio" in data
-    assert "score" in data
-    assert "simulations" in data
-
-    simulations = data["simulations"]
-    assert isinstance(simulations, list)
-    assert len(simulations) == 3
-
-    scenario_names = {item["scenario"] for item in simulations}
-    assert "do_nothing" in scenario_names
-    assert "selected_portfolio" in scenario_names
-    assert "high_friction" in scenario_names
 
 def test_remedy_simulate_endpoint_returns_simulations() -> None:
     payload = {
@@ -229,6 +203,8 @@ def test_remedy_simulate_endpoint_returns_simulations() -> None:
     assert "do_nothing" in scenario_names
     assert "selected_portfolio" in scenario_names
     assert "high_friction" in scenario_names
+
+
 def test_remedy_tradeoffs_endpoint_returns_tradeoff_report() -> None:
     payload = {
         "domain": "disaster",
@@ -261,6 +237,8 @@ def test_remedy_tradeoffs_endpoint_returns_tradeoff_report() -> None:
     assert "feasibility" in dimensions
     assert "contradiction_risk" in dimensions
     assert "overall_score" in dimensions
+
+
 def test_remedy_legitimacy_endpoint_returns_legitimacy_report() -> None:
     payload = {
         "domain": "disaster",
@@ -292,6 +270,8 @@ def test_remedy_legitimacy_endpoint_returns_legitimacy_report() -> None:
     assert "rights_risk" in categories
     assert "transparency" in categories
     assert "contestability" in categories
+
+
 def test_remedy_library_endpoint_returns_climate_mitigation_domain() -> None:
     response = client.get("/remedy/library?domain=climate_mitigation")
 
@@ -308,6 +288,8 @@ def test_remedy_library_endpoint_returns_climate_mitigation_domain() -> None:
     names = {item["name"] for item in options}
     assert "Climate budget alignment rule" in names
     assert "Contradictory subsidy phaseout" in names
+
+
 def test_remedy_compare_endpoint_returns_comparison_report() -> None:
     payload = {
         "domain": "disaster",
