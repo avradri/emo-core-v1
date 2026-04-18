@@ -308,3 +308,36 @@ def test_remedy_library_endpoint_returns_climate_mitigation_domain() -> None:
     names = {item["name"] for item in options}
     assert "Climate budget alignment rule" in names
     assert "Contradictory subsidy phaseout" in names
+def test_remedy_compare_endpoint_returns_comparison_report() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+    }
+
+    response = client.post("/remedy/compare", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "comparison_report" in data
+
+    report = data["comparison_report"]
+    assert "summary" in report
+    assert "comparisons" in report
+
+    comparisons = report["comparisons"]
+    assert isinstance(comparisons, list)
+    assert len(comparisons) == 3
+
+    labels = {item["portfolio_label"] for item in comparisons}
+    assert "baseline" in labels
+    assert "compact" in labels
+    assert "full" in labels

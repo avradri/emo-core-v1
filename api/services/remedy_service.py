@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
+from emo.remedy.comparison import build_portfolio_comparison_report
 from emo.remedy.legitimacy import build_legitimacy_report
 from emo.remedy.tradeoffs import build_tradeoff_report
 from emo.remedy.simulation import simulate_remedy_pathways
@@ -149,4 +150,25 @@ def build_remedy_legitimacy_result(payload: RemedyRequest) -> dict:
         "profile": asdict(pipeline["profile"]),
         "portfolio": asdict(pipeline["portfolio"]),
         "legitimacy_report": asdict(legitimacy_report),
+    }
+def build_remedy_comparison_result(payload: RemedyRequest) -> dict:
+    pipeline = _build_remedy_pipeline(payload)
+
+    comparison_report = build_portfolio_comparison_report(pipeline["portfolio"])
+
+    return {
+        "profile": asdict(pipeline["profile"]),
+        "portfolio": asdict(pipeline["portfolio"]),
+        "comparison_report": asdict(comparison_report),
+    }
+
+def build_remedy_comparison_result(payload: RemedyRequest) -> dict:
+    pipeline = _build_remedy_pipeline(payload)
+
+    comparison_report = build_portfolio_comparison_report(pipeline["portfolio"])
+
+    return {
+        "profile": asdict(pipeline["profile"]),
+        "portfolio": asdict(pipeline["portfolio"]),
+        "comparison_report": asdict(comparison_report),
     }

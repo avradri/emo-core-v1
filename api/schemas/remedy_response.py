@@ -52,3 +52,9 @@ class RemedyLegitimacyResponse(BaseModel):
     profile: dict
     portfolio: dict
     legitimacy_report: dict
+
+
+class RemedyComparisonResponse(BaseModel):
+    profile: dict
+    portfolio: dict
+    comparison_report: dict

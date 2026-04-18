@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from api.schemas.remedy_request import RemedyRequest
 from api.schemas.remedy_response import (
     RemedyBottleneckResponse,
+    RemedyComparisonResponse,
     RemedyExplainResponse,
     RemedyLegitimacyResponse,
     RemedyLibraryResponse,
@@ -15,6 +16,7 @@ from api.schemas.remedy_response import (
     RemedyTradeoffResponse,
 )
 from api.services.remedy_service import (
+    build_remedy_comparison_result,
     build_remedy_explain_result,
     build_remedy_legitimacy_result,
     build_remedy_library_result,
@@ -33,6 +35,12 @@ router = APIRouter(prefix="/remedy", tags=["remedy"])
 def remedy_library(domain: str | None = None) -> RemedyLibraryResponse:
     result = build_remedy_library_result(domain)
     return RemedyLibraryResponse(**result)
+
+
+@router.post("/compare", response_model=RemedyComparisonResponse)
+def remedy_compare(payload: RemedyRequest) -> RemedyComparisonResponse:
+    result = build_remedy_comparison_result(payload)
+    return RemedyComparisonResponse(**result)
 
 
 @router.post("/explain", response_model=RemedyExplainResponse)
