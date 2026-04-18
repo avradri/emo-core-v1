@@ -1,10 +1,20 @@
-# EMO‑Core v1.0 — Emergent Mind Observatory
+# EMO-Core — Emergent Mind Observatory (EMO)
 
 > A continuous cognitive layer for the planet, built on the Emergent Mind Observatory (EMO) and the Universal Interface Action (UIA). 
 
-EMO‑Core v1.0 is the backend engine for the **Emergent Mind Observatory (EMO)**:
+EMO (Emergent Mind Observatory) is a live observatory for measuring whether humanity is becoming more organismal under planetary-scale conditions.
 
-- Ingests multi‑stream global data (planetary boundaries, climate models, digital twins, early‑warning systems, media, knowledge graphs, trade and finance). :contentReference[oaicite:9]{index=9}  
+The repository now includes three tightly linked layers:
+
+- **EMO** as the observatory layer for collective cognition and species-level coordination
+- **UIA** as the formal ledger of interface alignment and organismality structure
+- **DAC** as the dynamic bridge from diagnosis to organized response
+
+This means EMO no longer functions only as a cognitive observatory. It now also measures whether validated diagnosis is translated into action through lag, conversion, persistence, contradiction, and alignment metrics.
+
+- **Emergent Mind Observatory (EMO)**:
+
+- Ingests multi-stream global data (planetary boundaries, climate models, digital twins, early-warning systems, media, knowledge graphs, trade and finance). 
 - Computes species‑level cognition metrics:
   - **OI** – Organismality Index (cooperation vs conflict)
   - **SΦ / Ω** – Synergy / O‑information across media, science, policy
@@ -55,6 +65,25 @@ The design follows the EMO v1.0 architecture document: :contentReference[oaicite
 In this repo we implement a **thin, testable slice** of each layer.
 
 ---
+
+## Remedy Design Layer (RDL)
+
+`emo-core-v1` now includes an initial Remedy Design Layer (RDL) for structured remedy design beyond diagnosis and actuation audit.
+
+RDL v0.1 currently provides:
+
+- bottleneck attribution
+- intervention mapping
+- portfolio construction
+- scoring
+- simulation
+- trade-off reporting
+- legitimacy review
+- explanation endpoints
+
+Documentation:
+
+- `docs/RDL_V0_1.md`
 
 ## Quick start
 

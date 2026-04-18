@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 import emo
-from api.routers import dac, metrics, uia
+from api.routers import dac, interfaces, metrics, remedy, uia
 
 DESCRIPTION = """
 EMO-Core API
@@ -23,7 +23,8 @@ app = FastAPI(
 app.include_router(metrics.router)
 app.include_router(uia.router)
 app.include_router(dac.router)
-
+app.include_router(remedy.router)
+app.include_router(interfaces.router)
 
 @app.get("/health", tags=["meta"])
 async def health() -> dict[str, str]:
