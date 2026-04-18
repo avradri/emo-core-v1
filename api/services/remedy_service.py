@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any
+from typing import Any, TypedDict
 
 from api.schemas.remedy_request import RemedyLearningRequest, RemedyRequest
 from emo.models.bottleneck_profile import BottleneckProfile
@@ -22,6 +22,12 @@ from emo.remedy.simulation import simulate_remedy_pathways
 from emo.remedy.tradeoffs import build_tradeoff_report
 
 
+class RemedyPipeline(TypedDict):
+    profile: BottleneckProfile
+    portfolio: RemedyPortfolio
+    score: PortfolioScore
+
+
 def _build_profile(
     payload: RemedyRequest | RemedyLearningRequest,
 ) -> BottleneckProfile:
@@ -39,7 +45,7 @@ def _build_profile(
 
 def _build_remedy_pipeline(
     payload: RemedyRequest | RemedyLearningRequest,
-) -> dict[str, BottleneckProfile | RemedyPortfolio | PortfolioScore]:
+) -> RemedyPipeline:
     profile = _build_profile(payload)
     options = get_intervention_options(profile.domain, profile.dominant_bottlenecks)
     portfolio = build_remedy_portfolio(profile=profile, options=options)
@@ -191,4 +197,4 @@ def build_remedy_learning_result(payload: RemedyLearningRequest) -> dict[str, An
         "portfolio": asdict(pipeline["portfolio"]),
         "score": asdict(pipeline["score"]),
         "learning_report": asdict(learning_report),
-}
+    }
