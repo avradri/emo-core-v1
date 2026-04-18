@@ -46,3 +46,9 @@ class RemedyTradeoffResponse(BaseModel):
     portfolio: dict
     score: dict
     tradeoff_report: dict
+
+
+class RemedyLegitimacyResponse(BaseModel):
+    profile: dict
+    portfolio: dict
+    legitimacy_report: dict

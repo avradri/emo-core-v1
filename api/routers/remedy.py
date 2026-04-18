@@ -6,6 +6,7 @@ from api.schemas.remedy_request import RemedyRequest
 from api.schemas.remedy_response import (
     RemedyBottleneckResponse,
     RemedyExplainResponse,
+    RemedyLegitimacyResponse,
     RemedyLibraryResponse,
     RemedyOptionsResponse,
     RemedyPortfolioResponse,
@@ -15,6 +16,7 @@ from api.schemas.remedy_response import (
 )
 from api.services.remedy_service import (
     build_remedy_explain_result,
+    build_remedy_legitimacy_result,
     build_remedy_library_result,
     build_remedy_options,
     build_remedy_portfolio_result,
@@ -49,6 +51,12 @@ def remedy_simulate(payload: RemedyRequest) -> RemedySimulationResponse:
 def remedy_tradeoffs(payload: RemedyRequest) -> RemedyTradeoffResponse:
     result = build_remedy_tradeoff_result(payload)
     return RemedyTradeoffResponse(**result)
+
+
+@router.post("/legitimacy", response_model=RemedyLegitimacyResponse)
+def remedy_legitimacy(payload: RemedyRequest) -> RemedyLegitimacyResponse:
+    result = build_remedy_legitimacy_result(payload)
+    return RemedyLegitimacyResponse(**result)
 
 
 @router.post("/bottlenecks", response_model=RemedyBottleneckResponse)

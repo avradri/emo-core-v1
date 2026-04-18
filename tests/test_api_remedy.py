@@ -261,3 +261,34 @@ def test_remedy_tradeoffs_endpoint_returns_tradeoff_report() -> None:
     assert "feasibility" in dimensions
     assert "contradiction_risk" in dimensions
     assert "overall_score" in dimensions
+def test_remedy_legitimacy_endpoint_returns_legitimacy_report() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+    }
+
+    response = client.post("/remedy/legitimacy", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "legitimacy_report" in data
+
+    report = data["legitimacy_report"]
+    assert "summary" in report
+    assert "flags" in report
+    assert isinstance(report["flags"], list)
+    assert len(report["flags"]) >= 1
+
+    categories = {item["category"] for item in report["flags"]}
+    assert "rights_risk" in categories
+    assert "transparency" in categories
+    assert "contestability" in categories
