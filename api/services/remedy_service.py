@@ -5,16 +5,12 @@ from typing import Any
 
 from api.schemas.remedy_request import RemedyLearningRequest, RemedyRequest
 from emo.models.bottleneck_profile import BottleneckProfile
-from emo.models.intervention_option import InterventionOption
 from emo.models.portfolio_score import PortfolioScore
 from emo.models.remedy_portfolio import RemedyPortfolio
 from emo.remedy.bottlenecks import classify_bottlenecks
 from emo.remedy.comparison import build_portfolio_comparison_report
 from emo.remedy.explain import build_explanation
-from emo.remedy.intervention_library import (
-    get_intervention_options,
-    get_remedy_library,
-)
+from emo.remedy.intervention_library import get_intervention_options, get_remedy_library
 from emo.remedy.learning import build_learning_report
 from emo.remedy.legitimacy import build_legitimacy_report
 from emo.remedy.portfolio_builder import build_remedy_portfolio
