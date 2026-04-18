@@ -332,6 +332,104 @@ DOMAIN_REMEDY_LIBRARY: dict[str, list[InterventionOption]] = {
             domains=["food_security"],
         ),
     ],
+"migration_stress": [
+        InterventionOption(
+            option_id="migration_reception_scaling_protocol",
+            family="infrastructure_capacity",
+            name="Reception scaling protocol",
+            description=(
+                "Predefine surge capacity rules for reception, shelter, registration, "
+                "and essential service access during rapid inflow events."
+            ),
+            target_bottlenecks=["deployment", "translation"],
+            required_capacity="high",
+            time_to_effect="short",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="high",
+            domains=["migration_stress"],
+        ),
+        InterventionOption(
+            option_id="migration_local_fiscal_support",
+            family="fiscal",
+            name="Local fiscal support trigger",
+            description=(
+                "Trigger temporary fiscal transfers to high-pressure municipalities "
+                "facing sudden service and housing strain."
+            ),
+            target_bottlenecks=["budget", "persistence"],
+            required_capacity="medium",
+            time_to_effect="short",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["migration_stress"],
+        ),
+        InterventionOption(
+            option_id="migration_case_coordination_cell",
+            family="coordination_institutional",
+            name="Cross-agency case coordination cell",
+            description=(
+                "Coordinate border, asylum, welfare, housing, health, and education "
+                "interfaces through a shared operational cell."
+            ),
+            target_bottlenecks=["translation", "contradiction"],
+            required_capacity="high",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="high",
+            domains=["migration_stress"],
+        ),
+        InterventionOption(
+            option_id="migration_legal_orientation_standard",
+            family="communication_attention",
+            name="Legal orientation and information standard",
+            description=(
+                "Provide standardized multilingual information on legal pathways, "
+                "rights, obligations, and available services."
+            ),
+            target_bottlenecks=["translation", "deployment"],
+            required_capacity="low",
+            time_to_effect="short",
+            evidence_level="strong",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["migration_stress"],
+        ),
+        InterventionOption(
+            option_id="migration_host_community_support",
+            family="social_protection_legitimacy",
+            name="Host-community support package",
+            description=(
+                "Pair migrant support measures with visible support for host "
+                "communities to reduce backlash and policy contradiction."
+            ),
+            target_bottlenecks=["persistence", "contradiction"],
+            required_capacity="medium",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="low",
+            coordination_cost="medium",
+            domains=["migration_stress"],
+        ),
+        InterventionOption(
+            option_id="migration_cross_border_referral_protocol",
+            family="treaty_cross_border_cooperation",
+            name="Cross-border referral protocol",
+            description=(
+                "Establish coordinated referral, data-sharing, and burden-management "
+                "protocols across neighboring jurisdictions."
+            ),
+            target_bottlenecks=["translation", "persistence"],
+            required_capacity="high",
+            time_to_effect="medium",
+            evidence_level="moderate",
+            rights_risk="medium",
+            coordination_cost="high",
+            domains=["migration_stress"],
+        ),
+    ],
 }
 
 

@@ -373,3 +373,19 @@ def test_remedy_library_endpoint_returns_food_security_domain() -> None:
     names = {item["name"] for item in options}
     assert "Buffer stock release protocol" in names
     assert "Targeted food income support" in names
+def test_remedy_library_endpoint_returns_migration_stress_domain() -> None:
+    response = client.get("/remedy/library?domain=migration_stress")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "library" in data
+    assert "migration_stress" in data["library"]
+
+    options = data["library"]["migration_stress"]
+    assert isinstance(options, list)
+    assert len(options) >= 1
+
+    names = {item["name"] for item in options}
+    assert "Reception scaling protocol" in names
+    assert "Local fiscal support trigger" in names
