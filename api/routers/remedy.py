@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from api.schemas.remedy_request import RemedyRequest
+from api.schemas.remedy_request import RemedyLearningRequest, RemedyRequest
 from api.schemas.remedy_response import (
     RemedyBottleneckResponse,
     RemedyComparisonResponse,
     RemedyExplainResponse,
     RemedyLegitimacyResponse,
+    RemedyLearningResponse,
     RemedyLibraryResponse,
     RemedyOptionsResponse,
     RemedyPortfolioResponse,
@@ -19,6 +20,7 @@ from api.services.remedy_service import (
     build_remedy_comparison_result,
     build_remedy_explain_result,
     build_remedy_legitimacy_result,
+    build_remedy_learning_result,
     build_remedy_library_result,
     build_remedy_options,
     build_remedy_portfolio_result,
@@ -65,6 +67,12 @@ def remedy_tradeoffs(payload: RemedyRequest) -> RemedyTradeoffResponse:
 def remedy_legitimacy(payload: RemedyRequest) -> RemedyLegitimacyResponse:
     result = build_remedy_legitimacy_result(payload)
     return RemedyLegitimacyResponse(**result)
+
+
+@router.post("/learn", response_model=RemedyLearningResponse)
+def remedy_learn(payload: RemedyLearningRequest) -> RemedyLearningResponse:
+    result = build_remedy_learning_result(payload)
+    return RemedyLearningResponse(**result)
 
 
 @router.post("/bottlenecks", response_model=RemedyBottleneckResponse)
