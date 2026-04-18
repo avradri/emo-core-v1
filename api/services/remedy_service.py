@@ -10,7 +10,10 @@ from emo.models.remedy_portfolio import RemedyPortfolio
 from emo.remedy.bottlenecks import classify_bottlenecks
 from emo.remedy.comparison import build_portfolio_comparison_report
 from emo.remedy.explain import build_explanation
-from emo.remedy.intervention_library import get_intervention_options, get_remedy_library
+from emo.remedy.intervention_library import (
+    get_intervention_options,
+    get_remedy_library,
+)
 from emo.remedy.learning import build_learning_report
 from emo.remedy.legitimacy import build_legitimacy_report
 from emo.remedy.portfolio_builder import build_remedy_portfolio
@@ -39,8 +42,8 @@ def _build_remedy_pipeline(
 ) -> dict[str, BottleneckProfile | RemedyPortfolio | PortfolioScore]:
     profile = _build_profile(payload)
     options = get_intervention_options(profile.domain, profile.dominant_bottlenecks)
-    portfolio = build_remedy_portfolio(profile, options)
-    score = score_portfolio(portfolio, profile)
+    portfolio = build_remedy_portfolio(profile=profile, options=options)
+    score = score_portfolio(portfolio)
 
     return {
         "profile": profile,
@@ -124,7 +127,6 @@ def build_remedy_simulation_result(payload: RemedyRequest) -> dict[str, Any]:
     pipeline = _build_remedy_pipeline(payload)
 
     simulations = simulate_remedy_pathways(
-        pipeline["profile"],
         pipeline["portfolio"],
         pipeline["score"],
     )
@@ -153,11 +155,7 @@ def build_remedy_tradeoff_result(payload: RemedyRequest) -> dict[str, Any]:
 def build_remedy_legitimacy_result(payload: RemedyRequest) -> dict[str, Any]:
     pipeline = _build_remedy_pipeline(payload)
 
-    legitimacy_report = build_legitimacy_report(
-        pipeline["profile"],
-        pipeline["portfolio"],
-        pipeline["score"],
-    )
+    legitimacy_report = build_legitimacy_report(pipeline["portfolio"].options)
 
     return {
         "profile": asdict(pipeline["profile"]),
