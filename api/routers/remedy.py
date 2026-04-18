@@ -10,6 +10,7 @@ from api.schemas.remedy_response import (
     RemedyOptionsResponse,
     RemedyPortfolioResponse,
     RemedyScoreResponse,
+    RemedySimulationResponse,
 )
 from api.services.remedy_service import (
     build_remedy_explain_result,
@@ -18,6 +19,7 @@ from api.services.remedy_service import (
     build_remedy_portfolio_result,
     build_remedy_profile,
     build_remedy_score_result,
+    build_remedy_simulation_result,
 )
 
 router = APIRouter(prefix="/remedy", tags=["remedy"])
@@ -33,6 +35,12 @@ def remedy_library(domain: str | None = None) -> RemedyLibraryResponse:
 def remedy_explain(payload: RemedyRequest) -> RemedyExplainResponse:
     result = build_remedy_explain_result(payload)
     return RemedyExplainResponse(**result)
+
+
+@router.post("/simulate", response_model=RemedySimulationResponse)
+def remedy_simulate(payload: RemedyRequest) -> RemedySimulationResponse:
+    result = build_remedy_simulation_result(payload)
+    return RemedySimulationResponse(**result)
 
 
 @router.post("/bottlenecks", response_model=RemedyBottleneckResponse)

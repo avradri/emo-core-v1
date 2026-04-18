@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
+from emo.remedy.simulation import simulate_remedy_pathways
 from emo.remedy.intervention_library import get_remedy_library
 from api.schemas.remedy_request import RemedyRequest
 from emo.models.bottleneck_profile import BottleneckProfile
@@ -111,4 +112,18 @@ def build_remedy_explain_result(payload: RemedyRequest) -> dict:
         "profile": asdict(profile),
         "portfolio": asdict(portfolio),
         "score": asdict(score),
+    }
+def build_remedy_simulation_result(payload: RemedyRequest) -> dict:
+    pipeline = _build_remedy_pipeline(payload)
+
+    simulations = simulate_remedy_pathways(
+        portfolio=pipeline["portfolio"],
+        score=pipeline["score"],
+    )
+
+    return {
+        "profile": asdict(pipeline["profile"]),
+        "portfolio": asdict(pipeline["portfolio"]),
+        "score": asdict(pipeline["score"]),
+        "simulations": [asdict(simulation) for simulation in simulations],
     }

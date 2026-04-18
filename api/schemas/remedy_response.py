@@ -32,3 +32,10 @@ class RemedyExplainResponse(BaseModel):
     profile: dict
     portfolio: dict
     score: dict
+
+
+class RemedySimulationResponse(BaseModel):
+    profile: dict
+    portfolio: dict
+    score: dict
+    simulations: list[dict]

@@ -167,3 +167,65 @@ def test_remedy_explain_endpoint_returns_explanation() -> None:
     assert isinstance(data["explanation"], str)
     assert "Dominant bottlenecks" in data["explanation"]
     assert "Recommended portfolio" in data["explanation"]
+
+def test_remedy_simulate_endpoint_returns_simulations() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+    }
+
+    response = client.post("/remedy/simulate", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "score" in data
+    assert "simulations" in data
+
+    simulations = data["simulations"]
+    assert isinstance(simulations, list)
+    assert len(simulations) == 3
+
+    scenario_names = {item["scenario"] for item in simulations}
+    assert "do_nothing" in scenario_names
+    assert "selected_portfolio" in scenario_names
+    assert "high_friction" in scenario_names
+
+def test_remedy_simulate_endpoint_returns_simulations() -> None:
+    payload = {
+        "domain": "disaster",
+        "jurisdiction": "RO",
+        "validation_score": 0.8,
+        "translation_score": 0.4,
+        "budget_score": 0.5,
+        "deployment_score": 0.6,
+        "persistence_score": 0.45,
+        "contradiction_score": 0.7,
+    }
+
+    response = client.post("/remedy/simulate", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "profile" in data
+    assert "portfolio" in data
+    assert "score" in data
+    assert "simulations" in data
+
+    simulations = data["simulations"]
+    assert isinstance(simulations, list)
+    assert len(simulations) == 3
+
+    scenario_names = {item["scenario"] for item in simulations}
+    assert "do_nothing" in scenario_names
+    assert "selected_portfolio" in scenario_names
+    assert "high_friction" in scenario_names
