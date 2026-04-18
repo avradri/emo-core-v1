@@ -23,10 +23,25 @@ from emo.remedy.simulation import simulate_remedy_pathways
 from emo.remedy.tradeoffs import build_tradeoff_report
 
 
+def _build_profile(
+    payload: RemedyRequest | RemedyLearningRequest,
+) -> BottleneckProfile:
+    return classify_bottlenecks(
+        domain=payload.domain,
+        jurisdiction=payload.jurisdiction,
+        validation_score=payload.validation_score,
+        translation_score=payload.translation_score,
+        budget_score=payload.budget_score,
+        deployment_score=payload.deployment_score,
+        persistence_score=payload.persistence_score,
+        contradiction_score=payload.contradiction_score,
+    )
+
+
 def _build_remedy_pipeline(
     payload: RemedyRequest | RemedyLearningRequest,
 ) -> dict[str, BottleneckProfile | RemedyPortfolio | PortfolioScore]:
-    profile = classify_bottlenecks(payload)
+    profile = _build_profile(payload)
     options = get_intervention_options(profile.domain, profile.dominant_bottlenecks)
     portfolio = build_remedy_portfolio(profile, options)
     score = score_portfolio(portfolio, profile)
@@ -39,12 +54,12 @@ def _build_remedy_pipeline(
 
 
 def build_remedy_profile(payload: RemedyRequest) -> dict[str, Any]:
-    profile = classify_bottlenecks(payload)
+    profile = _build_profile(payload)
     return asdict(profile)
 
 
 def build_remedy_options(payload: RemedyRequest) -> dict[str, Any]:
-    profile = classify_bottlenecks(payload)
+    profile = _build_profile(payload)
     options = get_intervention_options(profile.domain, profile.dominant_bottlenecks)
 
     return {
