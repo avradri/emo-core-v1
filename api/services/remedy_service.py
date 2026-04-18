@@ -191,4 +191,4 @@ def build_remedy_learning_result(payload: RemedyLearningRequest) -> dict[str, An
         "portfolio": asdict(pipeline["portfolio"]),
         "score": asdict(pipeline["score"]),
         "learning_report": asdict(learning_report),
-    }
+}
