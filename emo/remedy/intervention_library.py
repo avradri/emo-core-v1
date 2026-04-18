@@ -161,3 +161,12 @@ def get_intervention_options(
             ranked.append(option)
 
     return ranked if ranked else options
+
+def get_remedy_library(domain: str | None = None) -> dict[str, list[InterventionOption]]:
+    """
+    Return the whole remedy library or one domain-specific slice.
+    """
+    if domain is None:
+        return DOMAIN_REMEDY_LIBRARY
+
+    return {domain: DOMAIN_REMEDY_LIBRARY.get(domain, [])}

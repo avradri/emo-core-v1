@@ -125,3 +125,20 @@ def test_remedy_options_endpoint_returns_profile_and_options() -> None:
     assert "option_id" in first_option
     assert "family" in first_option
     assert "name" in first_option
+
+
+def test_remedy_library_endpoint_returns_domain_library() -> None:
+    response = client.get("/remedy/library?domain=disaster")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "library" in data
+    assert "disaster" in data["library"]
+    assert isinstance(data["library"]["disaster"], list)
+    assert len(data["library"]["disaster"]) >= 1
+
+    first_option = data["library"]["disaster"][0]
+    assert "option_id" in first_option
+    assert "family" in first_option
+    assert "name" in first_option

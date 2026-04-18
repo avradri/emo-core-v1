@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
+from emo.remedy.intervention_library import get_remedy_library
 from api.schemas.remedy_request import RemedyRequest
 from emo.models.bottleneck_profile import BottleneckProfile
 from emo.models.intervention_option import InterventionOption
@@ -73,4 +74,13 @@ def build_remedy_score_result(payload: RemedyRequest) -> dict:
         "profile": asdict(pipeline["profile"]),
         "portfolio": asdict(pipeline["portfolio"]),
         "score": asdict(pipeline["score"]),
+    }
+def build_remedy_library_result(domain: str | None = None) -> dict:
+    library = get_remedy_library(domain)
+
+    return {
+        "library": {
+            name: [asdict(option) for option in options]
+            for name, options in library.items()
+        }
     }
