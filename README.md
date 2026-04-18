@@ -66,6 +66,25 @@ In this repo we implement a **thin, testable slice** of each layer.
 
 ---
 
+## Remedy Design Layer (RDL)
+
+`emo-core-v1` now includes an initial Remedy Design Layer (RDL) for structured remedy design beyond diagnosis and actuation audit.
+
+RDL v0.1 currently provides:
+
+- bottleneck attribution
+- intervention mapping
+- portfolio construction
+- scoring
+- simulation
+- trade-off reporting
+- legitimacy review
+- explanation endpoints
+
+Documentation:
+
+- `docs/RDL_V0_1.md`
+
 ## Quick start
 
 ### 0. Requirements
