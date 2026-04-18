@@ -1,5 +1,3 @@
-import React from "react";
-
 type ScoreSummary = {
   overall_score?: number;
   feasibility?: number;
@@ -36,19 +34,19 @@ function Panel({
   return (
     <section
       style={{
-        border: "1px solid #ccc",
+        border: "1px solid #d1d5db",
         borderRadius: 12,
         padding: 16,
-        background: "#fff",
+        background: "#ffffff",
       }}
     >
-      <h3 style={{ marginTop: 0 }}>{title}</h3>
+      <h3 style={{ marginTop: 0, marginBottom: 12 }}>{title}</h3>
       {children}
     </section>
   );
 }
 
-export default function RDLDashboardScaffold({
+export default function RDLDashboard({
   domain,
   jurisdiction,
   dominantBottlenecks = [],
@@ -63,9 +61,9 @@ export default function RDLDashboardScaffold({
   learningSummary,
 }: DashboardProps) {
   return (
-    <main style={{ padding: 24 }}>
-      <h1>RDL Dashboard Scaffold</h1>
-      <p>
+    <main style={{ padding: 24, maxWidth: 1400, margin: "0 auto" }}>
+      <h1 style={{ marginBottom: 8 }}>RDL Dashboard</h1>
+      <p style={{ marginTop: 0, marginBottom: 24 }}>
         A first governance-facing interface for the Remedy Design Layer.
       </p>
 
